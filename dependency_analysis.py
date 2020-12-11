@@ -35,11 +35,13 @@ class DEP(CLS):
 
 
 cls_re = re.compile(
-    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
 android_re = re.compile(
-    r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+    r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)([/].*\.jar[!])*[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
 thirdparty_re = re.compile(
     r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+local_jar_re = re.compile(
+    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
 jdk_re = re.compile(
     r"^[$]PROJECT_DIR[$][/](?P<path>(?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
 
@@ -62,6 +64,10 @@ def parse_dependency(dependency_node):
     ma = thirdparty_re.match(path)
     if ma:
         dep = DEP(category="ThirdParty", **ma.groupdict())
+    
+    ma = local_jar_re.match(path)
+    if ma:
+        dep = DEP(category="LocalJar", **ma.groupdict())
 
     if not dep:
         print("Warning: dependency missed %s" % path)
