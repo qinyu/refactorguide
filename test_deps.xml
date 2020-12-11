@@ -1,0 +1,72 @@
+<root isBackward="false">
+  <file path="$PROJECT_DIR$/.gitignore">
+    <dependency path="$PROJECT_DIR$/local.properties" />
+  </file>
+  <file path="$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <file path="$PROJECT_DIR$/androidApp/src/main/AndroidManifest.xml">
+    <dependency path="$USER_HOME$/adt-bundle/sdk/sources/android-29/android/content/Intent.java" />
+  </file>
+  <file path="$PROJECT_DIR$/androidApp/src/main/java/info/qinyu/kmmsample/androidApp/MainActivity.kt">
+    <dependency path="$USER_HOME$/adt-bundle/sdk/sources/android-29/android/widget/TextView.java" />
+    <dependency path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Greeting.kt" />
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.0/63e75298e93d4ae0b299bb869cf0c627196f8843/kotlin-stdlib-1.4.0.jar!/kotlin/kotlin.kotlin_builtins" />
+    <dependency path="$USER_HOME$/adt-bundle/sdk/sources/android-29/android/os/Bundle.java" />
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.appcompat/appcompat/1.2.0/13e8ff89631c2e101eb6bddd12c2fb4bbd74b15d/appcompat-1.2.0-sources.jar!/androidx/appcompat/app/AppCompatActivity.java" />
+  </file>
+  <file path="$PROJECT_DIR$/androidApp/src/main/res/layout/activity_main.xml">
+    <dependency path="$USER_HOME$/adt-bundle/sdk/sources/android-29/android/widget/TextView.java" />
+    <dependency path="$USER_HOME$/.gradle/caches/transforms-2/files-2.1/873248d61f83fe0bc30dd61028fea3ea/constraintlayout-1.1.3/jars/classes.jar!/androidx/constraintlayout/widget/ConstraintLayout.class" />
+  </file>
+  <file path="$PROJECT_DIR$/androidApp/src/main/res/values/colors.xml" />
+  <file path="$PROJECT_DIR$/androidApp/src/main/res/values/styles.xml" />
+  <file path="$PROJECT_DIR$/build.gradle.kts" />
+  <file path="$PROJECT_DIR$/gradle.properties" />
+  <file path="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" />
+  <file path="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" />
+  <file path="$PROJECT_DIR$/gradlew" />
+  <file path="$PROJECT_DIR$/gradlew.bat" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp.xcodeproj/project.pbxproj" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/AppDelegate.swift" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/Assets.xcassets/Contents.json" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/Base.lproj/LaunchScreen.storyboard" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/ContentView.swift" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/Info.plist" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/Preview Content/Preview Assets.xcassets/Contents.json" />
+  <file path="$PROJECT_DIR$/iosApp/iosApp/SceneDelegate.swift" />
+  <file path="$PROJECT_DIR$/iosApp/iosAppTests/Info.plist" />
+  <file path="$PROJECT_DIR$/iosApp/iosAppTests/iosAppTests.swift" />
+  <file path="$PROJECT_DIR$/iosApp/iosAppUITests/Info.plist" />
+  <file path="$PROJECT_DIR$/iosApp/iosAppUITests/iosAppUITests.swift" />
+  <file path="$PROJECT_DIR$/local.properties" />
+  <file path="$PROJECT_DIR$/settings.gradle.kts" />
+  <file path="$PROJECT_DIR$/shared/build.gradle.kts" />
+  <file path="$PROJECT_DIR$/shared/src/androidMain/AndroidManifest.xml" />
+  <file path="$PROJECT_DIR$/shared/src/androidMain/kotlin/info/qinyu/kmmsample/shared/Platform.kt">
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.0/63e75298e93d4ae0b299bb869cf0c627196f8843/kotlin-stdlib-1.4.0.jar!/kotlin/kotlin.kotlin_builtins" />
+    <dependency path="$USER_HOME$/adt-bundle/sdk/sources/android-29/android/os/Build.java" />
+  </file>
+  <file path="$PROJECT_DIR$/shared/src/androidTest/kotlin/info/qinyu/kmmsample/shared/androidTest.kt">
+    <dependency path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Greeting.kt" />
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/a6c32b40bf3d76eca54e3c601e5d1470c86fcdfa/junit-4.12-sources.jar!/org/junit/Test.java" />
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/a6c32b40bf3d76eca54e3c601e5d1470c86fcdfa/junit-4.12-sources.jar!/org/junit/Assert.java" />
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.0/63e75298e93d4ae0b299bb869cf0c627196f8843/kotlin-stdlib-1.4.0.jar!/kotlin/text/StringsKt.class" />
+  </file>
+  <file path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Greeting.kt">
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.0/63e75298e93d4ae0b299bb869cf0c627196f8843/kotlin-stdlib-1.4.0.jar!/kotlin/kotlin.kotlin_builtins" />
+    <dependency path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Platform.kt" />
+  </file>
+  <file path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Platform.kt">
+    <dependency path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.0/63e75298e93d4ae0b299bb869cf0c627196f8843/kotlin-stdlib-1.4.0.jar!/kotlin/kotlin.kotlin_builtins" />
+  </file>
+  <file path="$PROJECT_DIR$/shared/src/iosMain/kotlin/info/qinyu/kmmsample/shared/Platform.kt">
+    <dependency path="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-1.4/klib/commonized/ios_arm64-ios_x64-MS40LjA/common/org.jetbrains.kotlin.native.platform.UIKit/default/linkdata/package_platform.UIKit/04_UIKit.knm" />
+    <dependency path="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-1.4/klib/common/stdlib/default/linkdata/package_kotlin/1_kotlin.knm" />
+  </file>
+  <file path="$PROJECT_DIR$/shared/src/iosTest/kotlin/info/qinyu/kmmsample/shared/iosTest.kt">
+    <dependency path="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-1.4/klib/common/stdlib/default/linkdata/package_kotlin.test/1_test.knm" />
+    <dependency path="$PROJECT_DIR$/shared/src/commonMain/kotlin/info/qinyu/kmmsample/shared/Greeting.kt" />
+    <dependency path="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-1.4/klib/common/stdlib/default/linkdata/package_kotlin.text/1_text.knm" />
+    <dependency path="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-1.4/klib/common/stdlib/default/linkdata/package_kotlin.test/0_test.knm" />
+  </file>
+</root>
