@@ -1,73 +1,22 @@
 import xml.etree.ElementTree as ET
 import re
+from config import category_re_dict, ext
+from model import CLS, DEP, print_class_with_dependencies
 
-
-class CLS(object):
-    """
-    Class
-    """
-
-    def __init__(self, path, name, package, module):
-        self.path = path
-        self.name = name
-        self.package = package.replace("/", ".")
-        self.module = module.replace("/", ":")
-
-    def __str__(self):
-        return str(self.__dict__)
-
-    __repr__ = __str__
-
-
-class DEP(CLS):
-    """
-    Denpendency
-    """
-
-    def __init__(self,  path, name, package, module, category=""):
-        CLS.__init__(self, path, name, package, module)
-        self.category = category
-
-    def __str__(self):
-        return str(self.__dict__)
-
-    __repr__ = __str__
-
-
-cls_re = re.compile(
-    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-android_re = re.compile(
-    r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)([/].*\.jar[!])*[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-thirdparty_re = re.compile(
-    r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-local_jar_re = re.compile(
-    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-jdk_re = re.compile(
-    r"^[$]PROJECT_DIR[$][/](?P<path>(?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
 
 def parse_class(file_node):
-    return CLS(**cls_re.match(file_node.get("path")).groupdict())
+    return CLS(**category_re_dict["Production"].match(file_node.get("path")).groupdict())
 
 
 def parse_dependency(dependency_node):
     dep = None
     path = dependency_node.get("path")
 
-    ma = cls_re.match(path)
-    if ma:
-        dep = DEP(category="Production", **ma.groupdict())
-
-    ma = android_re.match(path)
-    if ma:
-        dep = DEP(category="Android", **ma.groupdict())
-
-    ma = thirdparty_re.match(path)
-    if ma:
-        dep = DEP(category="ThirdParty", **ma.groupdict())
-    
-    ma = local_jar_re.match(path)
-    if ma:
-        dep = DEP(category="LocalJar", **ma.groupdict())
+    for cat, compiled_re in category_re_dict.items():
+        match = compiled_re.match(path)
+        if match:
+            dep = DEP(category=cat, **match.groupdict())
+            break
 
     if not dep:
         print("Warning: dependency missed %s" % path)
@@ -85,10 +34,9 @@ def parse_class_with_dependencies(file_node):
 
 
 def parse_classes_with_dependencies(file_name):
-    all_classes = []
     tree = ET.parse(file_name)
     root = tree.getroot()
-    return [parse_class_with_dependencies(f) for f in root.findall("file") if f.get("path").endswith(".kt")]
+    return [parse_class_with_dependencies(f) for f in root.findall("file") if f.get("path").endswith(ext)]
 
 
 c_format = '''{}
@@ -101,5 +49,4 @@ d_format = "- '{name}' in '{package}' belongs to '{module}'"
 
 if __name__ == "__main__":
     for c in parse_classes_with_dependencies("test_deps.xml"):
-        deps_str = [d_format.format(**d.__dict__) for d in c.dependencies]
-        print(c_format.format("-"*80, "\n    ".join(deps_str), **c.__dict__))
+        print_class_with_dependencies(c)
