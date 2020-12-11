@@ -11,7 +11,7 @@ class CLS(object):
         self.path = path
         self.name = name
         self.package = package.replace("/", ".")
-        self.module = module
+        self.module = module.replace("/", ":")
 
     def __str__(self):
         return str(self.__dict__)
@@ -35,19 +35,36 @@ class DEP(CLS):
 
 
 cls_re = re.compile(
+    r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+android_re = re.compile(
+    r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+thirdparty_re = re.compile(
+    r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+jdk_re = re.compile(
     r"^[$]PROJECT_DIR[$][/](?P<path>(?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-lib_re = re.compile(
-    r"^[$]PROJECT_DIR[$][/](?P<path>(?P<module>.*)([/]src[/])(.*[kotlin|java])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
-
 
 def parse_class(file_node):
     return CLS(**cls_re.match(file_node.get("path")).groupdict())
 
 
 def parse_dependency(dependency_node):
-    ma = cls_re.match(dependency_node.get("path"))
-    dep = DEP(category="Production", **ma.groupdict()) if ma else None
-    # print(dep)
+    dep = None
+    path = dependency_node.get("path")
+
+    ma = cls_re.match(path)
+    if ma:
+        dep = DEP(category="Production", **ma.groupdict())
+
+    ma = android_re.match(path)
+    if ma:
+        dep = DEP(category="Android", **ma.groupdict())
+
+    ma = thirdparty_re.match(path)
+    if ma:
+        dep = DEP(category="ThirdParty", **ma.groupdict())
+
+    if not dep:
+        print("Warning: dependency missed %s" % path)
     return dep
 
 
@@ -79,4 +96,4 @@ d_format = "- '{name}' in '{package}' belongs to '{module}'"
 if __name__ == "__main__":
     for c in parse_classes_with_dependencies("test_deps.xml"):
         deps_str = [d_format.format(**d.__dict__) for d in c.dependencies]
-        print(c_format.format("-"*80, "    \n".join(deps_str), **c.__dict__))
+        print(c_format.format("-"*80, "\n    ".join(deps_str), **c.__dict__))
