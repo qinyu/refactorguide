@@ -24,7 +24,7 @@ def console_plant_uml(file_list):
         uml+=get_plant_head(k,v,package_dict)
     for file in file_list:
         # build plantuml relation
-        uml+=get_plant_relation(file.name,file.dependencies)
+        uml+=get_plant_relation(file,file.dependencies)
     writeToFile(uml)
     print("end print uml")
             
@@ -35,13 +35,22 @@ def get_plant_head(module_name,package_name_list,package_dict):
     moudle_str=uml_module_format.format(module_name,package_str)
     return moudle_str
 
-def get_plant_relation(file_name,dep_file_name_list):
-    depStr=[]
+def get_plant_relation(file,dep_file_name_list):
+    str=[]
+    condition=""
+    # target uml line level
     for dep_file in dep_file_name_list:
-        depStr.append(dep_file.name)
-    str=[uml_relation_format.format(dep_file_name,file_name) for dep_file_name in depStr]
+        if dep_file.module!=file.module:
+            condition="[#red]"
+        elif dep_file.module==file.module and dep_file.package==file.package:
+            condition="[#green]"
+        elif dep_file.module==file.module and dep_file.package!=file.package:
+                condition="[#blue]"
+        else:
+            condition=""
+        str.append(uml_relation_format.format(dep_file.name,condition,file.name))
     return ''.join(str)
-
+        
 def writeToFile(uml):
     print(uml)
     dt= time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
@@ -53,4 +62,4 @@ def writeToFile(uml):
 uml_module_format = "Package {} {{ \n{} }} \n"
 uml_package_format = "Package {} {{ \n{}   }} \n"
 uml_class_format="  class {} \n"
-uml_relation_format="{} <|-- {}\n"
+uml_relation_format="{} <|-{}- {}\n"

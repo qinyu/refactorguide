@@ -1,0 +1,28 @@
+Package androidApp { 
+Package info.qinyu.kmmsample.androidApp { 
+  class MainActivity 
+   } 
+ } 
+Package shared { 
+Package info.qinyu.kmmsample.shared { 
+  class Platform 
+  class androidTest 
+  class Greeting 
+  class iosTest 
+   } 
+ } 
+TextView <|-[#red]- MainActivity
+Greeting <|-[#red]- MainActivity
+kotlin <|-[#red]- MainActivity
+Bundle <|-[#red]- MainActivity
+AppCompatActivity <|-[#red]- MainActivity
+kotlin <|-[#red]- Platform
+Build <|-[#red]- Platform
+Greeting <|-[#green]- androidTest
+Test <|-[#red]- androidTest
+Assert <|-[#red]- androidTest
+StringsKt <|-[#red]- androidTest
+kotlin <|-[#red]- Greeting
+Platform <|-[#green]- Greeting
+kotlin <|-[#red]- Platform
+Greeting <|-[#green]- iosTest
