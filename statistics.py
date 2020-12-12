@@ -18,14 +18,18 @@ def console_statistics_data(file_list):
                 cross_package_count += 1
             elif dep_file.module==file.module and dep_file.package==file.package:
                 normal_count += 1
-    print(statistics_format.format(len(module_list),len(package_list),len(class_list),cross_module_count,cross_package_count,normal_count))
+    print(statistics_format.format(len(module_list),len(package_list),len(class_list),total_dep_count,cross_module_count,cross_package_count,normal_count))
 
 statistics_format = '''
 Statistics：
-Total Module = {} Total Package = {} Total Class ={}
+
+Total Module = {} Total Package = {} Total Class ={}  
+
+Total Dependency={}
 Cross Module Dependency= {} 
 Cross Package Dependency ={} 
 Normal Class Dependency={}
+
 '''
 
 def calculator_list(file):
