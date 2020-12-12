@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import re
 from config import category_re_dict, ext
 from model import CLS, DEP, print_class_with_dependencies
-
+from uml import console_plant_uml
 
 def parse_class(file_node):
     return CLS(**category_re_dict["Production"].match(file_node.get("path")).groupdict())
@@ -48,5 +48,7 @@ Class '{name}' in '{package}' belongs to '{module}'
 d_format = "- '{name}' in '{package}' belongs to '{module}'"
 
 if __name__ == "__main__":
-    for c in parse_classes_with_dependencies("test_deps.xml"):
+    file_list=parse_classes_with_dependencies("test_deps.xml")
+    for c in file_list:
         print_class_with_dependencies(c)
+    console_plant_uml(file_list)
