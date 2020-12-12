@@ -3,12 +3,40 @@ Package info.qinyu.kmmsample.androidApp {
   class MainActivity 
    } 
  } 
+Package android-29 { 
+Package android.widget { 
+  class TextView 
+   } 
+Package android.os { 
+  class Bundle 
+  class Build 
+   } 
+ } 
 Package shared { 
 Package info.qinyu.kmmsample.shared { 
+  class Greeting 
   class Platform 
   class androidTest 
-  class Greeting 
   class iosTest 
+   } 
+ } 
+Package org.jetbrains.kotlin:kotlin-stdlib:1.4.0 { 
+Package kotlin { 
+  class kotlin 
+   } 
+Package kotlin.text { 
+  class StringsKt 
+   } 
+ } 
+Package androidx.appcompat:appcompat:1.2.0 { 
+Package androidx.appcompat.app { 
+  class AppCompatActivity 
+   } 
+ } 
+Package junit:junit:4.12 { 
+Package org.junit { 
+  class Test 
+  class Assert 
    } 
  } 
 TextView <|-[#red]- MainActivity

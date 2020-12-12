@@ -1,23 +1,16 @@
 import time
 
+module_dict={}
+package_dict={}
+
 def console_plant_uml(file_list):
     print("start print uml")
-    module_dict={}
-    package_dict={}
     uml=""
     ## build module and package map relation
     for file in file_list:
-        if(module_dict.get(file.module)):
-            if(module_dict.get(file.module).count(file.package)<=0):
-                module_dict.get(file.module).append(file.package)
-        else:
-            module_dict[file.module]=[file.package]
-
-        if(package_dict.get(file.package)):
-            if(package_dict.get(file.package).count(file.name)<=0):
-                package_dict.get(file.package).append(file.name)
-        else:
-            package_dict[file.package]=[file.name]
+        build_dict_by_file_list(file)
+        for dep_file in file.dependencies:
+            build_dict_by_file_list(dep_file)
 
     for (k,v) in  module_dict.items(): 
         # build plantuml head
@@ -27,7 +20,21 @@ def console_plant_uml(file_list):
         uml+=get_plant_relation(file,file.dependencies)
     writeToFile(uml)
     print("end print uml")
-            
+
+def build_dict_by_file_list(file):
+    if(module_dict.get(file.module)):
+        if(file.package not in module_dict.get(file.module)):
+            module_dict.get(file.module).append(file.package)
+    else:
+        module_dict[file.module]=[file.package]
+
+    if(package_dict.get(file.package)):
+        if(file.name not in package_dict.get(file.package)):
+            package_dict.get(file.package).append(file.name)
+    else:
+        package_dict[file.package]=[file.name]
+
+           
 def get_plant_head(module_name,package_name_list,package_dict):
     package_str=""
     for package_name in package_name_list:
@@ -52,7 +59,6 @@ def get_plant_relation(file,dep_file_name_list):
     return ''.join(str)
         
 def writeToFile(uml):
-    print(uml)
     dt= time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
     f=open(dt+'.puml','w',encoding='utf-8')
     f.write(''.join(uml))
