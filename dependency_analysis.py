@@ -5,10 +5,11 @@ from itertools import groupby
 from operator import attrgetter
 from config import category_re_dict, class_path_filter, dependency_filter, logic_pacakges
 
-from model import CLS, DEP, print_class_with_dependencies
+from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies
 from uml import console_plant_uml
 from statistics import console_statistics_data
 from markdown import console_markdown
+
 
 def parse_class(file_node):
     path = file_node.get("path")
@@ -69,7 +70,7 @@ def group_by_modules_and_logic_packages(file_list):
 
         package_dict = {}
         for p, p_cls_list in groupby(m_cls_list, key=attrgetter("logic_package")):
-            package_dict[p] = list(p_cls_list)
+            package_dict[p] = PKG(m, p, list(p_cls_list))
 
         module_dict[m] = package_dict
 
@@ -78,8 +79,8 @@ def group_by_modules_and_logic_packages(file_list):
 
 def filter_suspicious_dependency(module_dict):
     for m, pkg_dict in module_dict.items():
-        for p, classes in pkg_dict.items():
-            for c in classes:
+        for p, pkg in pkg_dict.items():
+            for c in pkg.classes:
                 c.suspicious_dependencies = filter(
                     partial(dependency_filter, c), c.dependencies)
 
@@ -89,7 +90,6 @@ def update_usages(class_list, class_map):
         for d in c.dependencies:
             dc = class_map.get(d.path)
             if dc:
-                # print(dc.package + "." + dc.name)
                 for cat, compiled_re in category_re_dict.items():
                     match = compiled_re.match(dc.path)
                     if match:
@@ -97,7 +97,6 @@ def update_usages(class_list, class_map):
                                   c.module, c.logic_package, cat)
                         break
                 dc.usages.append(dep)
-                # print("----" + dc.name +" ,".join([u.package + "." + u.name for u in dc.usages]))
 
                 if dependency_filter(dc, dep):
                     dc.suspicious_usages.append(dep)
@@ -119,12 +118,10 @@ if __name__ == "__main__":
     module_dict = group_by_modules_and_logic_packages(file_list)
     filter_suspicious_dependency(module_dict)
     for m, pkg_dict in module_dict.items():
-        for p, classes in pkg_dict.items():
-            for c in classes:
-                print_class_with_dependencies(c, True)
-    #console_markdown(module_dict)
-    console_plant_uml(module_dict)
-    # for c in file_list:
-    #     print_class_with_dependencies(c)
-    # console_plant_uml(file_list)
-    # console_statistics_data(file_list)
+        for p, pkg in pkg_dict.items():
+            print_package_with_dependencies(pkg, True)
+            # for c in pkg.classes:
+            #     print_class_with_dependencies(c, True)
+
+    # console_markdown(module_dict)
+    # console_plant_uml(module_dict)
