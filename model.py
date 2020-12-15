@@ -21,16 +21,16 @@ class CLS(object):
     -------
     """
 
-    def __init__(self, path, name, package, module, dependencies=[], usages=[]):
+    def __init__(self, path, name, package, module, logic_package=None, dependencies=[]):
         self.path = path
         self.name = name
         self.package = package.replace("/", ".")
-        self.logic_package = self.package
+        self.logic_package = logic_package if logic_package else self.package
         self.module = module.replace("/", ":")
         self.dependencies = dependencies
         self.suspicious_dependencies = []
-        self.usages = usages
-        self.suspicious_uasges = []
+        self.usages = []
+        self.suspicious_usages = []
 
     def __str__(self):
         return str(self.__dict__)
@@ -63,8 +63,8 @@ class DEP(CLS):
     -------
     """
 
-    def __init__(self,  path, name, package, module, category=""):
-        CLS.__init__(self, path, name, package, module)
+    def __init__(self,  path, name, package, module, logic_package=None, category=""):
+        CLS.__init__(self, path, name, package, module, logic_package)
         self.category = category
 
     def __str__(self):
@@ -73,17 +73,27 @@ class DEP(CLS):
     __repr__ = __str__
 
 
-c_format = '''{0}
+c_format = '''{}
 Class '{name}' in '{package}' belongs to '{module}'
-  depends on {2} mudules {3} packages {4} class:
-    {1}
+  depends on {}:
+    {}
+  used by {}:
+    {}
 '''
+
+s_format = "{} mudules {} packages {} classes"
 
 d_format = "- '{name}' in '{package}' belongs to '{module}'"
 
 
-def print_class_with_dependencies(cls, suspicious_dependencies_only=False):
-    deps_str = [d_format.format(**d.__dict__)
-                for d in (cls.suspicious_dependencies if suspicious_dependencies_only else cls.dependencies)]
+def print_class_with_dependencies(cls, suspicious_only=False):
+    deps_str = "\n    ".join([d_format.format(**d.__dict__)
+                              for d in (cls.suspicious_dependencies if suspicious_only else cls.dependencies)])
+    usages_str = "\n    ".join([d_format.format(**d.__dict__)
+                                for d in (cls.suspicious_usages if suspicious_only else cls.usages)])
+    deps_stats_str = s_format.format(
+        *(cls.suspicious_depedencies_statistics() if suspicious_only else cls.depedencies_statistics()))
+    usages_stats_str = s_format.format(
+        *(cls.suspicious_usages_statistics() if suspicious_only else cls.usages_statistics()))
     print(c_format.format("-"*80,
-                          "\n    ".join(deps_str), *(cls.suspicious_depedencies_statistics() if suspicious_dependencies_only else cls.depedencies_statistics()), **cls.__dict__))
+                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))

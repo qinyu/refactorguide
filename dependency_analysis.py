@@ -84,16 +84,44 @@ def filter_suspicious_dependency(module_dict):
                     partial(dependency_filter, c), c.dependencies)
 
 
+def update_usages(class_list, class_map):
+    for c in class_list:
+        for d in c.dependencies:
+            dc = class_map.get(d.path)
+            if dc:
+                # print(dc.package + "." + dc.name)
+                for cat, compiled_re in category_re_dict.items():
+                    match = compiled_re.match(dc.path)
+                    if match:
+                        dep = DEP(c.path, c.name, c.package,
+                                  c.module, c.logic_package, cat)
+                        break
+                dc.usages.append(dep)
+                # print("----" + dc.name +" ,".join([u.package + "." + u.name for u in dc.usages]))
+
+                if dependency_filter(dc, dep):
+                    dc.suspicious_usages.append(dep)
+
+    for c in class_list:
+        c.usages = sorted(c.usages, key=attrgetter(
+            "module", "logic_package", "package", "name"))
+        c.suspicious_usages = sorted(c.suspicious_usages, key=attrgetter(
+            "module", "logic_package", "package", "name"))
+
+
 if __name__ == "__main__":
     file_list = [c for c in parse_classes_with_dependencies(
         "fast_hub_deps.xml", class_path_filter) if c]
+
+    class_map = dict((c.path, c) for c in file_list)
+    update_usages(file_list, class_map)
 
     module_dict = group_by_modules_and_logic_packages(file_list)
     filter_suspicious_dependency(module_dict)
     for m, pkg_dict in module_dict.items():
         for p, classes in pkg_dict.items():
             for c in classes:
-                print_class_with_dependencies(c, False)
+                print_class_with_dependencies(c, True)
 
     # for c in file_list:
     #     print_class_with_dependencies(c)
