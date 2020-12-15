@@ -1,6 +1,5 @@
 import re
 
-ext = "kt"
 category_re_dict = {
     "Production": re.compile(
         r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
@@ -12,4 +11,24 @@ category_re_dict = {
         r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
     "JDK": re.compile(
         r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+}
+
+
+def class_path_filter(path): return path.endswith("java")
+
+
+def production_only(dep): return dep.category == "Production"
+def cross_module_only(cls, dep): return cls.module != dep.module
+
+
+def cross_package_only(
+    cls, dep): return cls.module != dep.module or cls.logic_package != dep.logic_package
+
+
+def dependency_filter(cls, dep): return production_only(
+    dep) and cross_package_only(cls, dep)
+
+
+logic_pacakges = {
+    'app':  ['com.fastaccess.ui.modules']
 }

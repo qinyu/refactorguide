@@ -40,5 +40,6 @@ d_format = "- '{name}' in '{package}' belongs to '{module}'"
 
 
 def print_class_with_dependencies(cls):
-    deps_str = [d_format.format(**d.__dict__) for d in cls.dependencies]
+    deps_str = [d_format.format(**d.__dict__)
+                for d in cls.suspicious_dependencies]
     print(c_format.format("-"*80, "\n    ".join(deps_str), **cls.__dict__))
