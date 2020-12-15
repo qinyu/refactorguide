@@ -93,7 +93,7 @@ if __name__ == "__main__":
     for m, pkg_dict in module_dict.items():
         for p, classes in pkg_dict.items():
             for c in classes:
-                print_class_with_dependencies(c)
+                print_class_with_dependencies(c, False)
 
     # for c in file_list:
     #     print_class_with_dependencies(c)
