@@ -8,7 +8,7 @@ from config import category_re_dict, class_path_filter, dependency_filter, logic
 from model import CLS, DEP, print_class_with_dependencies
 from uml import console_plant_uml
 from statistics import console_statistics_data
-
+from markdown import console_markdown
 
 def parse_class(file_node):
     path = file_node.get("path")
@@ -122,7 +122,8 @@ if __name__ == "__main__":
         for p, classes in pkg_dict.items():
             for c in classes:
                 print_class_with_dependencies(c, True)
-
+    #console_markdown(module_dict)
+    console_plant_uml(module_dict)
     # for c in file_list:
     #     print_class_with_dependencies(c)
     # console_plant_uml(file_list)

@@ -1,48 +1,30 @@
 import time
+import os
 
-module_dict={}
-package_dict={}
-
-def console_plant_uml(file_list):
-    print("start print uml")
-    uml=""
-    ## build module and package map relation
-    for file in file_list:
-        build_dict_by_file_list(file)
-        for dep_file in file.dependencies:
-            build_dict_by_file_list(dep_file)
-
-    for (k,v) in  module_dict.items(): 
+def console_plant_uml(module_dict):
+    for m, pkg_dict in module_dict.items():
         # build plantuml head
-        uml+=get_plant_head(k,v,package_dict)
-    for file in file_list:
-        # build plantuml relation
-        uml+=get_plant_relation(file,file.dependencies)
-    writeToFile(uml)
-    print("end print uml")
-
-def build_dict_by_file_list(file):
-    if(module_dict.get(file.module)):
-        if(file.package not in module_dict.get(file.module)):
-            module_dict.get(file.module).append(file.package)
-    else:
-        module_dict[file.module]=[file.package]
-
-    if(package_dict.get(file.package)):
-        if(file.name not in package_dict.get(file.package)):
-            package_dict.get(file.package).append(file.name)
-    else:
-        package_dict[file.package]=[file.name]
-
+        dt= time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        print("start print "+m+"to uml")
+        for p, classes in pkg_dict.items():
+            uml="@startuml \n"
+            uml+=get_plant_head(m,{p:classes})
+            for file in classes:
+                #build plantuml relation
+                uml+=get_plant_relation(file,file.suspicious_dependencies,False)
+                uml+=get_plant_relation(file,file.suspicious_usages,True)
+            uml+="\n@enduml"
+            writeToFile(dt,m,p,uml)
+        print("end print "+m+"to uml")
            
-def get_plant_head(module_name,package_name_list,package_dict):
+def get_plant_head(module_name,pkg_dict):
     package_str=""
-    for package_name in package_name_list:
-         package_str+=''.join([uml_package_format.format(package_name,''.join([uml_class_format.format(file_name) for file_name in package_dict[package_name]]))])
+    for p, classes in pkg_dict.items():
+        package_str+=''.join([uml_package_format.format(p,''.join([uml_class_format.format(file.name) for file in classes]))])
     moudle_str=uml_module_format.format(module_name,package_str)
     return moudle_str
 
-def get_plant_relation(file,dep_file_name_list):
+def get_plant_relation(file,dep_file_name_list,isUsage):
     str=[]
     condition=""
     # target uml line level
@@ -55,17 +37,30 @@ def get_plant_relation(file,dep_file_name_list):
                 condition="[#blue]"
         else:
             condition=""
-        str.append(uml_relation_format.format(dep_file.name,condition,file.name))
+        if(isUsage):
+            str.append(uml_relation_format.format(file.name,condition,dep_file.name))
+        else:
+            str.append(uml_back_relation_format.format(file.name,condition,dep_file.name))
     return ''.join(str)
+
+ 
         
-def writeToFile(uml):
-    dt= time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
-    f=open(dt+'.puml','w',encoding='utf-8')
+def writeToFile(dt,m,p,uml):
+    path=dt+"/"+m
+    isExists=os.path.exists(path)
+    # 判断结果
+    if not isExists:
+        # 如果不存在则创建目录
+        # 创建目录操作函数
+        os.makedirs(path) 
+        print (path+' 创建成功')
+    f=open(path+'/'+p+".puml",'w',encoding='utf-8')
     f.write(''.join(uml))
     f.close()
-    print("wirite file succes,output file name is :"+dt)
+    print("wirite file succes,output file name is :"+p+".puml")
 
 uml_module_format = "Package {} {{ \n{} }} \n"
 uml_package_format = "Package {} {{ \n{}   }} \n"
 uml_class_format="  class {} \n"
 uml_relation_format="{} <|-{}- {}\n"
+uml_back_relation_format="{} -{}-|> {}\n"
