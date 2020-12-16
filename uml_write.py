@@ -62,7 +62,7 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
 
 
 def writeToFile(dt, m, p, uml):
-    path = "report_"+dt+"/"+m+"/uml/"
+    path = "Report_"+dt+"/"+m+"/uml/"
     isExists = os.path.exists(path)
     # 判断结果
     if not isExists:
