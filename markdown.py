@@ -1,7 +1,7 @@
 # coding=utf-8
 import time
 import os
-
+from model import grouped_info,grouped_by_modules_and_logic_packages
 
 def console_markdown(module_dict):
     for m, pkg_dict in module_dict.items():
@@ -11,10 +11,10 @@ def console_markdown(module_dict):
             markdown = get_markdown(m, p, pkg)
             markdown += md_line
             markdown += "# suspicious_dependencies: \n"
-            markdown += "".join([md_class_format.format(dep_file.package + "." + dep_file.name)for dep_file in pkg.suspicious_dependencies])
+            markdown += grouped_info(grouped_by_modules_and_logic_packages(pkg.suspicious_dependencies))
             markdown += md_line
             markdown += "# suspicious_usages: \n"
-            markdown += "".join([md_class_format.format(usages_file.package +"." + usages_file.name)for usages_file in pkg.suspicious_usages])
+            markdown += grouped_info(grouped_by_modules_and_logic_packages(pkg.suspicious_usages))
             writeToFile(dt, m, p, markdown)
         print("end print "+m+"to markdown")
 
@@ -28,7 +28,7 @@ def get_markdown(module_name, package_name, pkg):
 
 
 def writeToFile(dt, m, p, uml):
-    path = dt+"/"+m
+    path = dt+"/markdown/"+m
     isExists = os.path.exists(path)
     # 判断结果
     if not isExists:

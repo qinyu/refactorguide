@@ -119,5 +119,5 @@ if __name__ == "__main__":
                 break
             break
 
-    # console_markdown(module_dict)
-    # console_plant_uml(module_dict)
+    console_markdown(module_dict)
+    console_plant_uml(module_dict)

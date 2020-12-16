@@ -2,6 +2,7 @@
 # coding=utf-8
 import time
 import os
+from model import  grouped_by_modules_and_logic_packages
 
 
 def console_plant_uml(module_dict):
@@ -10,10 +11,18 @@ def console_plant_uml(module_dict):
         dt = time.strftime("%Y-%m-%d %H:%M", time.localtime())
         print("start print "+m+"to uml")
         for p, pkg in pkg_dict.items():
-            uml = "@startuml \n"
-            uml += get_plant_head(m, {p: pkg.classes})
+            uml = "@startuml \n\n"
+            group_classes=[]
+            group_dict={}
             for file in pkg.classes:
-                # build plantuml relation
+                group_classes+=file.suspicious_dependencies
+                group_classes+=file.suspicious_usages
+            # build plantuml head    
+            group_dict=grouped_by_modules_and_logic_packages(pkg.classes+group_classes)
+            uml += "".join([get_plant_head(m, group_pkg_dict) for group_m,group_pkg_dict in group_dict.items()])
+
+            for file in pkg.classes:
+                # build plantuml relation         
                 uml += get_plant_relation(file,file.suspicious_dependencies, False)
                 uml += get_plant_relation(file, file.suspicious_usages, True)
             uml += "\n@enduml"
@@ -53,7 +62,7 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
 
 
 def writeToFile(dt, m, p, uml):
-    path = dt+"/"+m
+    path = dt+"/uml/"+m
     isExists = os.path.exists(path)
     # 判断结果
     if not isExists:
