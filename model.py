@@ -76,7 +76,7 @@ class CLS(Statistics):
         self.name = name
         self.package = package.replace("/", ".")
         self.logic_package = logic_package if logic_package else self.package
-        self.module = module.lstrip(".").replace("/", ".")
+        self.module = module.replace("/", ".").lstrip(".")
         self.dependencies = dependencies
         self.suspicious_dependencies = []
         self.usages = []
@@ -142,7 +142,7 @@ class PKG(Statistics):
 
     @property
     def dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.dependencies]), key=asorter)
+        return sorted(set([d for c in self.classes for d in c.dependencies]), key=sorter)
 
     @property
     def suspicious_dependencies(self):
