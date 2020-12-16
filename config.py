@@ -28,6 +28,9 @@ def cross_package_only(
 def dependency_filter(cls, dep): return production_only(
     dep) and cross_package_only(cls, dep)
 
+def usage_filter(cls, usage): return cross_package_only(usage, cls)
+
+
 
 logic_pacakges = {
     'app':  ['com.fastaccess.ui.modules']

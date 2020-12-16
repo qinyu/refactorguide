@@ -3,7 +3,7 @@ import re
 from functools import partial
 from itertools import groupby
 from operator import attrgetter
-from config import category_re_dict, class_path_filter, dependency_filter, logic_pacakges
+from config import category_re_dict, class_path_filter, dependency_filter, logic_pacakges, usage_filter
 
 from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies
 from uml import console_plant_uml
@@ -49,24 +49,29 @@ def parse_classes_with_dependencies(file_name, class_path_filter=lambda path: Tr
     return [parse_class(f) for f in root.findall("file") if class_path_filter(f.get("path"))]
 
 
-def update_logic_package(c):
-    for logic_package in logic_pacakges.get(c.module, []):
-        if c.logic_package.startswith(logic_package):
-            c.logic_package = logic_package
-            break
-    return c
+def update_class_logic_packages(m_cls_list):
+    def update(c):
+        for logic_package in logic_pacakges.get(c.module, []):
+            if c.logic_package.startswith(logic_package):
+                c.logic_package = logic_package
+                break
+        return c
+
+    for c in m_cls_list:
+        update(c)
+        c.dependencies = [update(d) for d in c.dependencies]
+        c.usages = [update(u) for u in c.usages]
 
 
 def group_by_modules_and_logic_packages(file_list):
     module_dict = {}
-    li1 = sorted(file_list, key=attrgetter(
+    sorted_classes = sorted(file_list, key=attrgetter(
         'module', 'logic_package', 'package'))
-    for m, l in groupby(li1, key=attrgetter("module")):
-        logic_package_list = logic_pacakges.get(m, [])
+    for m, l in groupby(sorted_classes, key=attrgetter("module")):
         m_cls_list = list(l)
-        for c in m_cls_list:
-            update_logic_package(c)
-            c.dependencies = [update_logic_package(d) for d in c.dependencies]
+        # for c in m_cls_list:
+        #     update_logic_package(c)
+        #     c.dependencies = [update_logic_package(d) for d in c.dependencies]
 
         package_dict = {}
         for p, p_cls_list in groupby(m_cls_list, key=attrgetter("logic_package")):
@@ -83,9 +88,11 @@ def filter_suspicious_dependency(module_dict):
             for c in pkg.classes:
                 c.suspicious_dependencies = filter(
                     partial(dependency_filter, c), c.dependencies)
+                c.suspicious_usages = filter(
+                    partial(usage_filter, c), c.usages)
 
 
-def update_usages(class_list, class_map):
+def update_class_usages(class_list, class_map):
     for c in class_list:
         for d in c.dependencies:
             dc = class_map.get(d.path)
@@ -98,9 +105,6 @@ def update_usages(class_list, class_map):
                         break
                 dc.usages.append(dep)
 
-                if dependency_filter(dc, dep):
-                    dc.suspicious_usages.append(dep)
-
     for c in class_list:
         c.usages = sorted(c.usages, key=attrgetter(
             "module", "logic_package", "package", "name"))
@@ -109,13 +113,13 @@ def update_usages(class_list, class_map):
 
 
 if __name__ == "__main__":
-    file_list = [c for c in parse_classes_with_dependencies(
+    all_classes = [c for c in parse_classes_with_dependencies(
         "fast_hub_deps.xml", class_path_filter) if c]
+    update_class_logic_packages(all_classes)
+    class_map = dict((c.path, c) for c in all_classes)
+    update_class_usages(all_classes, class_map)
 
-    class_map = dict((c.path, c) for c in file_list)
-    update_usages(file_list, class_map)
-
-    module_dict = group_by_modules_and_logic_packages(file_list)
+    module_dict = group_by_modules_and_logic_packages(all_classes)
     filter_suspicious_dependency(module_dict)
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
