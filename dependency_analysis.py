@@ -99,7 +99,8 @@ def update_class_usages(class_list):
 
     for c in class_list:
         c.usages = sorted(c.usages, key=sorter)
-        c.suspicious_usages = sorted(c.suspicious_usages, sorter)
+        c.suspicious_usages = sorted(c.suspicious_usages, key=sorter)
+
 
 
 if __name__ == "__main__":
