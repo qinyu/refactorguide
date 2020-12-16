@@ -1,4 +1,9 @@
+# coding = utf-8
 import re
+
+from operator import attrgetter
+
+sorter = attrgetter('module', 'logic_package', 'package', 'name')
 
 category_re_dict = {
     "Production": re.compile(
@@ -28,8 +33,8 @@ def cross_package_only(
 def dependency_filter(cls, dep): return production_only(
     dep) and cross_package_only(cls, dep)
 
-def usage_filter(cls, usage): return cross_package_only(usage, cls)
 
+def usage_filter(cls, usage): return cross_package_only(usage, cls)
 
 
 logic_pacakges = {

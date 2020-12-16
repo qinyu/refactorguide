@@ -1,24 +1,51 @@
 # coding=utf-8
 
+from config import sorter
+from itertools import groupby
 from operator import attrgetter
 
 
 class Statistics(object):
 
+    @property
     def depedencies_statistics(self):
-        return len(set([d.module for d in self.dependencies])), len(set([d.logic_package for d in self.dependencies])), len(self.dependencies)
+        return len(set([d.module for d in self.dependencies])),\
+            len(set([d.logic_package for d in self.dependencies])),\
+            len(self.dependencies)
 
+    @property
     def usages_statistics(self):
-        return len(set([d.module for d in self.usages])), len(set([d.logic_package for d in self.usages])), len(self.usages)
+        return len(set([u.module for u in self.usages])),\
+            len(set([u.logic_package for u in self.usages])),\
+            len(self.usages)
 
+    @property
     def suspicious_depedencies_statistics(self):
-        return len(set([d.module for d in self.suspicious_dependencies])), len(set([d.logic_package for d in self.suspicious_dependencies])), len(self.suspicious_dependencies)
+        return len(set([d.module for d in self.suspicious_dependencies])),\
+            len(set([d.logic_package for d in self.suspicious_dependencies])),\
+            len(self.suspicious_dependencies)
 
+    @property
     def suspicious_usages_statistics(self):
-        return len(set([d.module for d in self.suspicious_usages])), len(set([d.logic_package for d in self.suspicious_usages])), len(self.suspicious_usages)
+        return len(set([u.module for u in self.suspicious_usages])),\
+            len(set([u.logic_package for u in self.suspicious_usages])),\
+            len(self.suspicious_usages)
 
-    # def info(self, suspicious_only=False):
-        # s_format = "依赖了 {} 个模块 {} 个包 {} 个类， 被 {} 个模块 {} 个包 {} 个类使用"
+    @property
+    def grouped_depedencies(self):
+        return grouped_by_modules_and_logic_packages(self.dependencies)
+
+    @property
+    def grouped_suspicious_dependencies(self):
+        return grouped_by_modules_and_logic_packages(self.suspicious_dependencies)
+
+    @property
+    def grouped_usages(self):
+        return grouped_by_modules_and_logic_packages(self.usages)
+
+    @property
+    def grouped_suspicious_usages(self):
+        return grouped_by_modules_and_logic_packages(self.suspicious_usages)
 
 
 class CLS(Statistics):
@@ -49,7 +76,7 @@ class CLS(Statistics):
         self.name = name
         self.package = package.replace("/", ".")
         self.logic_package = logic_package if logic_package else self.package
-        self.module = module.replace("/", ":")
+        self.module = module.lstrip(".").replace("/", ".")
         self.dependencies = dependencies
         self.suspicious_dependencies = []
         self.usages = []
@@ -60,7 +87,6 @@ class CLS(Statistics):
         return str(self.__dict__)
 
     def __eq__(self, other):
-        """Overrides the default implementation"""
         if isinstance(other, CLS):
             return self.path == other.path
         return False
@@ -70,20 +96,6 @@ class CLS(Statistics):
 
     def __hash__(self):
         return hash(self.path)
-
-    __repr__ = __str__
-
-    # def depedencies_statistics(self):
-    #     return len(set([d.module for d in self.dependencies])), len(set([d.logic_package for d in self.dependencies])), len(self.dependencies)
-
-    # def usages_statistics(self):
-    #     return len(set([d.module for d in self.usages])), len(set([d.logic_package for d in self.usages])), len(self.usages)
-
-    # def suspicious_depedencies_statistics(self):
-    #     return len(set([d.module for d in self.suspicious_dependencies])), len(set([d.logic_package for d in self.suspicious_dependencies])), len(self.suspicious_dependencies)
-
-    # def suspicious_usages_statistics(self):
-    #     return len(set([d.module for d in self.suspicious_usages])), len(set([d.logic_package for d in self.suspicious_usages])), len(self.suspicious_usages)
 
 
 class DEP(CLS):
@@ -130,26 +142,19 @@ class PKG(Statistics):
 
     @property
     def dependencies(self):
-        return sorted(set(
-            [d for c in self.classes for d in c.dependencies]), key=attrgetter(
-            "module", "logic_package", "package", "name"))
+        return sorted(set([d for c in self.classes for d in c.dependencies]), key=asorter)
 
     @property
     def suspicious_dependencies(self):
-        return sorted(set(
-            [d for c in self.classes for d in c.suspicious_dependencies]), key=attrgetter(
-            "module", "logic_package", "package", "name"))
+        return sorted(set([d for c in self.classes for d in c.suspicious_dependencies]), key=sorter)
 
     @property
     def usages(self):
-        return sorted(set([u for c in self.classes for u in c.usages]), key=attrgetter(
-            "module", "logic_package", "package", "name"))
+        return sorted(set([u for c in self.classes for u in c.usages]), key=sorter)
 
     @property
     def suspicious_usages(self):
-        return sorted(set(
-            [u for c in self.classes for u in c.suspicious_usages]), key=attrgetter(
-            "module", "logic_package", "package", "name"))
+        return sorted(set([u for c in self.classes for u in c.suspicious_usages]), key=sorter)
 
 
 c_format = '''{}
@@ -162,15 +167,51 @@ Class '{name}' in '{package}' belongs to '{module}'
 
 p_format = '''{}
 Package '{name}' belongs to '{module}'
-  depends on {}:
-    {}
-  used by {}:
-    {}
+-------
+depends on {}:
+{}
+--------
+used by {}:
+{}
 '''
 
 s_format = "{} mudules {} packages {} classes"
 
 d_format = "- '{name}' in '{package}' belongs to '{module}'"
+
+
+def grouped_by_modules_and_logic_packages(classes):
+    module_dict = {}
+    sorted_classes = sorted(classes, key=sorter)
+    for m, m_cls_list in groupby(sorted_classes, key=attrgetter("module")):
+        package_dict = {}
+        for p, p_cls_list in groupby(list(m_cls_list), key=attrgetter("logic_package")):
+            package_dict[p] = list(p_cls_list)
+
+        module_dict[m] = package_dict
+    return module_dict
+
+
+def grouped_info(module_dict):
+    _str = ""
+    for m, pkgs in module_dict.items():
+        _str += m + "\n"
+        for p, dependencies in pkgs.items():
+            _str += "├──" + p + "\n"
+            for d in dependencies:
+                _str += "│   ├──" + \
+                    (d.package + "." + d.name) + "\n"
+    return _str
+
+
+def grouped_dependenies_of(class_or_package, suspicious_only=False):
+    module_dict = class_or_package.grouped_suspicious_dependencies if suspicious_only else class_or_package.grouped_dependencies
+    return grouped_info(module_dict)
+
+
+def grouped_usages_of(class_or_package, suspicious_only=False):
+    module_dict = class_or_package.grouped_suspicious_usages if suspicious_only else class_or_package.grouped_usages
+    return grouped_info(module_dict)
 
 
 def print_class_with_dependencies(cls, suspicious_only=False):
@@ -179,9 +220,9 @@ def print_class_with_dependencies(cls, suspicious_only=False):
     usages_str = "\n    ".join([d_format.format(**d.__dict__)
                                 for d in (cls.suspicious_usages if suspicious_only else cls.usages)])
     deps_stats_str = s_format.format(
-        *(cls.suspicious_depedencies_statistics() if suspicious_only else cls.depedencies_statistics()))
+        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
     usages_stats_str = s_format.format(
-        *(cls.suspicious_usages_statistics() if suspicious_only else cls.usages_statistics()))
+        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
     print(c_format.format("-"*80,
                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
 
@@ -192,8 +233,19 @@ def print_package_with_dependencies(cls, suspicious_only=False):
     usages_str = "\n    ".join([d_format.format(**d.__dict__)
                                 for d in (cls.suspicious_usages if suspicious_only else cls.usages)])
     deps_stats_str = s_format.format(
-        *(cls.suspicious_depedencies_statistics() if suspicious_only else cls.depedencies_statistics()))
+        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
     usages_stats_str = s_format.format(
-        *(cls.suspicious_usages_statistics() if suspicious_only else cls.usages_statistics()))
+        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
+    print(p_format.format("-"*80,
+                          deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
+
+
+def print_package_with_grouped_dependencies(cls, suspicious_only=False):
+    deps_str = grouped_dependenies_of(cls, suspicious_only)
+    usages_str = grouped_usages_of(cls, suspicious_only)
+    deps_stats_str = s_format.format(
+        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
+    usages_stats_str = s_format.format(
+        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
     print(p_format.format("-"*80,
                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
