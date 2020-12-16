@@ -207,7 +207,12 @@ def grouped_info(module_dict):
             _str += "├──" + p + "\n"
             for d in dependencies:
                 _str += "│   ├──" + \
-                    (d.package + "." + d.name) + "\n"
+                    (d.package + "." + d.name)
+                if len(d.bad_smells) > 0:
+                    _str += " (" + \
+                        ", ".join(
+                            [bs.description for bs in d.bad_smells]) + ")"
+                _str += "\n"
     return _str
 
 

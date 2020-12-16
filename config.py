@@ -47,17 +47,20 @@ class BadSmell(object):
     def __call__(self, cls, dep):
         return self.check(cls, dep)
 
+    def __str__(self):
+        return self.description
+
 
 dependency_smells = [
-    # BadSmell(smell_cross_module, "Cross module"),
-    BadSmell(smell_cross_package, "Cross package"),
-    BadSmell(smell_cylic_dependency, "Cylic_dependency")
+    BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
+    BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
+    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 ]
 
 usage_smells = [
-    BadSmell(smell_cross_module, "Cross module"),
-    BadSmell(smell_cross_package, "Cross package"),
-    BadSmell(smell_cylic_dependency, "Cylic_dependency")
+    BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
+    BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
+    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 ]
 
 

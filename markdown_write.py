@@ -11,11 +11,11 @@ def console_markdown(module_dict):
         for p, pkg in pkg_dict.items():
             markdown = get_markdown(m, p, pkg)
             markdown += md_line
-            markdown += "# suspicious_dependencies: \n"
+            markdown += "# 可能存在问题的依赖有: \n"
             markdown += grouped_info(
                 grouped_by_modules_and_logic_packages(pkg.suspicious_dependencies))
             markdown += md_line
-            markdown += "# suspicious_usages: \n"
+            markdown += "# 可能存在问题的调用有:\n"
             markdown += grouped_info(
                 grouped_by_modules_and_logic_packages(pkg.suspicious_usages))
             writeToFile(dt, m, p, markdown)
@@ -46,6 +46,6 @@ def writeToFile(dt, m, p, uml):
 
 
 md_module_format = "# {} \n"
-md_package_format = "包：{}  \n|---dependencies:{} usages:{}\n"
-md_class_format = "|---{}   \n|   |---dependencies:{} usages:{} \n"
+md_package_format = "包：{}  \n    总共依赖: {} 被调用: {}\n"
+md_class_format = "├──{}({},{})\n"
 md_line = "\n"+"--------------------\n"
