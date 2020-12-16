@@ -5,7 +5,15 @@ from itertools import groupby
 from operator import attrgetter
 
 
-class Statistics(object):
+class BASE(object):
+
+    @property
+    def suspicious_dependencies(self):
+        return [d for d in self.dependencies if len(d.bad_smells) > 0]
+
+    @property
+    def suspicious_usages(self):
+        return [u for u in self.usages if len(u.bad_smells) > 0]
 
     @property
     def depedencies_statistics(self):
@@ -32,7 +40,7 @@ class Statistics(object):
             len(self.suspicious_usages)
 
     @property
-    def grouped_depedencies(self):
+    def grouped_dependencies(self):
         return grouped_by_modules_and_logic_packages(self.dependencies)
 
     @property
@@ -48,7 +56,7 @@ class Statistics(object):
         return grouped_by_modules_and_logic_packages(self.suspicious_usages)
 
 
-class CLS(Statistics):
+class CLS(BASE):
     """
     A Java class with all dependencies.
 
@@ -71,17 +79,15 @@ class CLS(Statistics):
     -------
     """
 
-    def __init__(self, path, name, package, module, logic_package=None, dependencies=[]):
+    def __init__(self, path, name, package, module, category="Production", logic_package=None,  dependencies=[]):
+        self.category = category
         self.path = path
         self.name = name
         self.package = package.replace("/", ".")
         self.logic_package = logic_package if logic_package else self.package
         self.module = module.replace("/", ".").lstrip(".")
         self.dependencies = dependencies
-        self.suspicious_dependencies = []
         self.usages = []
-        self.suspicious_usages = []
-        self.reason = "?"
 
     def __str__(self):
         return str(self.__dict__)
@@ -111,9 +117,10 @@ class DEP(CLS):
     -------
     """
 
-    def __init__(self, path, name, package, module, logic_package=None, category=""):
-        CLS.__init__(self, path, name, package, module, logic_package)
-        self.category = category
+    def __init__(self, path, name, package, module, category, logic_package=None):
+        CLS.__init__(self, path, name, package,
+                     module, category, logic_package)
+        self.bad_smells = []
 
     def __str__(self):
         return str(self.__dict__)
@@ -133,7 +140,7 @@ class DEP(CLS):
         return hash(self.path)
 
 
-class PKG(Statistics):
+class PKG(BASE):
 
     def __init__(self, module,  name, classes):
         self.classes = classes
@@ -158,7 +165,7 @@ class PKG(Statistics):
 
 
 c_format = '''{}
-Class '{name}' in '{package}' belongs to '{module}'
+{category} Class '{name}' in '{package}' belongs to '{module}'
   depends on {}:
     {}
   used by {}:
@@ -177,7 +184,7 @@ used by {}:
 
 s_format = "{} mudules {} packages {} classes"
 
-d_format = "- '{name}' in '{package}' belongs to '{module}'"
+d_format = "- {category} '{name}' in '{package}' belongs to '{module}'"
 
 
 def grouped_by_modules_and_logic_packages(classes):
@@ -215,10 +222,8 @@ def grouped_usages_of(class_or_package, suspicious_only=False):
 
 
 def print_class_with_dependencies(cls, suspicious_only=False):
-    deps_str = "\n    ".join([d_format.format(**d.__dict__)
-                              for d in (cls.suspicious_dependencies if suspicious_only else cls.dependencies)])
-    usages_str = "\n    ".join([d_format.format(**d.__dict__)
-                                for d in (cls.suspicious_usages if suspicious_only else cls.usages)])
+    deps_str = grouped_dependenies_of(cls, suspicious_only)
+    usages_str = grouped_usages_of(cls, suspicious_only)
     deps_stats_str = s_format.format(
         *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
     usages_stats_str = s_format.format(
@@ -228,19 +233,6 @@ def print_class_with_dependencies(cls, suspicious_only=False):
 
 
 def print_package_with_dependencies(cls, suspicious_only=False):
-    deps_str = "\n    ".join([d_format.format(**d.__dict__)
-                              for d in (cls.suspicious_dependencies if suspicious_only else cls.dependencies)])
-    usages_str = "\n    ".join([d_format.format(**d.__dict__)
-                                for d in (cls.suspicious_usages if suspicious_only else cls.usages)])
-    deps_stats_str = s_format.format(
-        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
-    usages_stats_str = s_format.format(
-        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
-    print(p_format.format("-"*80,
-                          deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
-
-
-def print_package_with_grouped_dependencies(cls, suspicious_only=False):
     deps_str = grouped_dependenies_of(cls, suspicious_only)
     usages_str = grouped_usages_of(cls, suspicious_only)
     deps_stats_str = s_format.format(

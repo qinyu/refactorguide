@@ -1,4 +1,4 @@
-# coding = utf-8
+# coding = utf-8s
 import re
 
 from operator import attrgetter
@@ -22,21 +22,52 @@ category_re_dict = {
 def class_path_filter(path): return path.endswith("java")
 
 
-def production_only(dep): return dep.category == "Production"
-def cross_module_only(cls, dep): return cls.module != dep.module
+def is_production(dep): return dep.category == "Production"
 
 
-def cross_package_only(
-    cls, dep): return cls.module != dep.module or cls.logic_package != dep.logic_package
+def smell_cross_module(cls, dep): return is_production(
+    dep) and cls.module != dep.module
 
 
-def dependency_filter(cls, dep): return production_only(
-    dep) and cross_package_only(cls, dep)
+def smell_cross_package(
+    cls, dep): return is_production(
+        dep) and cls.module == dep.module and cls.logic_package != dep.logic_package
 
 
-def usage_filter(cls, usage): return cross_package_only(usage, cls)
+def smell_cylic_dependency(
+    cls, dep): return is_production(
+        dep) and cls.path in [u.path for u in cls.usages]
+
+
+class BadSmell(object):
+    def __init__(self, check, description):
+        self.check = check
+        self.description = description
+
+    def __call__(self, cls, dep):
+        return self.check(cls, dep)
+
+
+dependency_smells = [
+    # BadSmell(smell_cross_module, "Cross module"),
+    BadSmell(smell_cross_package, "Cross package"),
+    BadSmell(smell_cylic_dependency, "Cylic_dependency")
+]
+
+usage_smells = [
+    BadSmell(smell_cross_module, "Cross module"),
+    BadSmell(smell_cross_package, "Cross package"),
+    BadSmell(smell_cylic_dependency, "Cylic_dependency")
+]
+
+
+def dependency_filter(cls, dep): return is_production(
+    dep) and smell_cross_package(cls, dep)
+
+
+def usage_filter(cls, usage): return smell_cross_package(usage, cls)
 
 
 logic_pacakges = {
-    'app':  ['com.fastaccess.ui.modules']
+    # 'app':  ['com.fastaccess.ui.modules']
 }

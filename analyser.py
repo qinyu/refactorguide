@@ -1,11 +1,7 @@
 import xml.etree.ElementTree as ET
-import re
-from functools import partial
-from itertools import groupby
-from operator import attrgetter
-from config import category_re_dict, class_path_filter, dependency_filter, logic_pacakges, usage_filter, sorter
+from config import *
 
-from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, print_package_with_grouped_dependencies, grouped_by_modules_and_logic_packages
+from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, grouped_by_modules_and_logic_packages
 from uml_write import console_plant_uml
 from statistics import console_statistics_data
 from markdown_write import console_markdown
@@ -72,34 +68,44 @@ def group_by_modules_and_logic_packages(classes):
     return module_dict
 
 
-def filter_suspicious_dependency(module_dict):
+def find_smells(module_dict):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
-                c.suspicious_dependencies = list(filter(
-                    partial(dependency_filter, c), c.dependencies))
-                c.suspicious_usages = list(filter(
-                    partial(usage_filter, c), c.usages))
+                for d in c.dependencies:
+                    for smell in dependency_smells:
+                        if smell(c, d):
+                            d.bad_smells.append(smell)
+                for u in c.usages:
+                    for smell in usage_smells:
+                        if smell(u, c):
+                            u.bad_smells.append(smell)
 
 
 def update_class_usages(class_list):
     class_map = dict((c.path, c) for c in all_classes)
 
-    for c in class_list:
-        for d in c.dependencies:
-            dc = class_map.get(d.path)
-            if dc:
+    for u in class_list:
+        for d in u.dependencies:
+            c = class_map.get(d.path)
+            if c:
                 for cat, compiled_re in category_re_dict.items():
-                    match = compiled_re.match(dc.path)
-                    if match:
-                        dep = DEP(c.path, c.name, c.package,
-                                  c.module, c.logic_package, cat)
+                    if compiled_re.match(c.path):
+                        c.usages.append(DEP(u.path, u.name, u.package,
+                                            u.module, cat, u.logic_package))
                         break
-                dc.usages.append(dep)
 
     for c in class_list:
         c.usages = sorted(c.usages, key=sorter)
-        c.suspicious_usages = sorted(c.suspicious_usages, key=sorter)
+
+
+def filter_interested_packages(module_dict, module_packages):
+    return {m: {p: module_dict.get(m, {}).get(p, {}) for p in pkg_names}
+            for m, pkg_names in module_packages.items()}
+
+
+def filter_interested_modules(module_dict, module_packages):
+    return {m: module_dict.get(m, {}) for m in module_packages.keys()}
 
 
 if __name__ == "__main__":
@@ -109,14 +115,15 @@ if __name__ == "__main__":
     update_class_usages(all_classes)
 
     module_dict = group_by_modules_and_logic_packages(all_classes)
-    module_dict = {k: module_dict.get(k, {}) for k in logic_pacakges.keys()}
-    filter_suspicious_dependency(module_dict)
+    # module_dict = filter_interested_packages(module_dict, logic_pacakges)
+
+    find_smells(module_dict)
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
-            print_package_with_grouped_dependencies(pkg, True)
+            print_package_with_dependencies(pkg, True)
             # for c in pkg.classes:
-            #     print_class_with_dependencies(c, True)
-            #     break
+                # print_class_with_dependencies(c, True)
+                # break
             # break
 
     console_markdown(module_dict)

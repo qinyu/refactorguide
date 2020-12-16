@@ -2,7 +2,7 @@
 # coding=utf-8
 import time
 import os
-from model import  grouped_by_modules_and_logic_packages
+from model import grouped_by_modules_and_logic_packages
 
 
 def console_plant_uml(module_dict):
@@ -12,18 +12,21 @@ def console_plant_uml(module_dict):
         print("start print "+m+"to uml")
         for p, pkg in pkg_dict.items():
             uml = "@startuml \n\n"
-            group_classes=[]
-            group_dict={}
+            group_classes = []
+            group_dict = {}
             for file in pkg.classes:
-                group_classes+=file.suspicious_dependencies
-                group_classes+=file.suspicious_usages
-            # build plantuml head    
-            group_dict=grouped_by_modules_and_logic_packages(pkg.classes+group_classes)
-            uml += "".join([get_plant_head(m, group_pkg_dict) for group_m,group_pkg_dict in group_dict.items()])
+                group_classes += file.suspicious_dependencies
+                group_classes += file.suspicious_usages
+            # build plantuml head
+            group_dict = grouped_by_modules_and_logic_packages(
+                pkg.classes+group_classes)
+            uml += "".join([get_plant_head(m, group_pkg_dict)
+                            for group_m, group_pkg_dict in group_dict.items()])
 
             for file in pkg.classes:
-                # build plantuml relation         
-                uml += get_plant_relation(file,file.suspicious_dependencies, False)
+                # build plantuml relation
+                uml += get_plant_relation(file,
+                                          file.suspicious_dependencies, False)
                 uml += get_plant_relation(file, file.suspicious_usages, True)
             uml += "\n@enduml"
             writeToFile(dt, m, p, uml)
@@ -63,16 +66,9 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
 
 def writeToFile(dt, m, p, uml):
     path = "Report_"+dt+"/"+m+"/uml/"
-    isExists = os.path.exists(path)
-    # 判断结果
-    if not isExists:
-        # 如果不存在则创建目录
-        # 创建目录操作函数
-        os.makedirs(path)
-        print(path+' 创建成功')
-    f = open(path+'/'+p+".puml", 'w', encoding='utf-8')
-    f.write(''.join(uml))
-    f.close()
+    os.makedirs(path, exist_ok=True)
+    with open(path+'/'+p+".puml", 'w', encoding='utf-8') as f:
+        f.write(''.join(uml))
     print("wirite file succes,output file name is :"+p+".puml")
 
 
