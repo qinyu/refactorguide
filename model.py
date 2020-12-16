@@ -142,7 +142,7 @@ class PKG(Statistics):
 
     @property
     def dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.dependencies]), key=asorter)
+        return sorted(set([d for c in self.classes for d in c.dependencies]), key=sorter)
 
     @property
     def suspicious_dependencies(self):
