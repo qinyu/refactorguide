@@ -21,11 +21,14 @@ def console_markdown(module_dict):
 
 def get_markdown(module_name, package_name, pkg):
     result = md_module_format.format(module_name)
-    result += md_package_format.format(package_name)
+    result += md_package_format.format(package_name,len(pkg.suspicious_dependencies),len(pkg.suspicious_usages))
     result += md_line
-    result += "".join([md_class_format.format(file.package + "." + file.name) for file in pkg.classes])
+    sort_classes=sorted(pkg.classes,key = sorted_by_dep,reverse=True)
+    result += "".join([md_class_format.format(file.package + "." + file.name,len(file.suspicious_dependencies),len(file.suspicious_usages)) for file in sort_classes])
     return result
 
+def sorted_by_dep(file):
+    return len(file.suspicious_dependencies)
 
 def writeToFile(dt, m, p, uml):
     path = "Report_"+dt+"/"+m+"/markdown/"
@@ -43,6 +46,6 @@ def writeToFile(dt, m, p, uml):
 
 
 md_module_format = "# {} \n"
-md_package_format = "包：{} \n"
-md_class_format = "|---{} \n"
+md_package_format = "包：{}  \n|---dependencies:{} usages:{}\n"
+md_class_format = "|---{}   \n|   |---dependencies:{} usages:{} \n"
 md_line="\n"+"--------------------\n"
