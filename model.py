@@ -59,6 +59,18 @@ class CLS(Statistics):
     def __str__(self):
         return str(self.__dict__)
 
+    def __eq__(self, other):
+        """Overrides the default implementation"""
+        if isinstance(other, CLS):
+            return self.path == other.path
+        return False
+
+    def __ne__(self, other):
+        return (not self.__eq__(other))
+
+    def __hash__(self):
+        return hash(self.path)
+
     __repr__ = __str__
 
     # def depedencies_statistics(self):
@@ -95,6 +107,18 @@ class DEP(CLS):
         return str(self.__dict__)
 
     __repr__ = __str__
+
+    def __eq__(self, other):
+        """Overrides the default implementation"""
+        if isinstance(other, DEP):
+            return self.path == other.path
+        return False
+
+    def __ne__(self, other):
+        return (not self.__eq__(other))
+
+    def __hash__(self):
+        return hash(self.path)
 
 
 class PKG(Statistics):
