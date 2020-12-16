@@ -199,20 +199,42 @@ def grouped_by_modules_and_logic_packages(classes):
     return module_dict
 
 
+def d_format_oneline(d):
+    _str = d.package + "." + d.name
+    if len(d.bad_smells) > 0:
+        _str += " (" + \
+            ", ".join(
+                [bs.description for bs in d.bad_smells]) + ")"
+    return _str
+
+
+def d_format_oneline(d):
+    _str = d.package + "." + d.name
+    if len(d.bad_smells) > 0:
+        _str += " (" + \
+            ", ".join(
+                [bs.description for bs in d.bad_smells]) + ")"
+    return _str
+
+
+def deps_format(dependencies, join_str="\n│   ├──", end_str="\n│   └──"):
+    d_onelines = [d_format_oneline(d) for d in dependencies]
+    return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + \
+        end_str + d_onelines[-1]
+
+
 def grouped_info(module_dict):
     _str = ""
     for m, pkgs in module_dict.items():
-        _str += m + "\n"
-        for p, dependencies in pkgs.items():
-            _str += "├──" + p + "\n"
-            for d in dependencies:
-                _str += "│   ├──" + \
-                    (d.package + "." + d.name)
-                if len(d.bad_smells) > 0:
-                    _str += " (" + \
-                        ", ".join(
-                            [bs.description for bs in d.bad_smells]) + ")"
-                _str += "\n"
+        _str += m
+        keys = list(pkgs.keys())
+        for p in keys[:-1]:
+            _str += "\n├──" + p
+            _str += deps_format(pkgs[p])
+        _str += "\n└──" + keys[-1]
+        _str += deps_format(pkgs[keys[-1]],
+                            join_str="\n    ├──", end_str="\n    └──")
+        _str += "\n"
     return _str
 
 
