@@ -9,13 +9,12 @@ def console_plant_uml(module_dict):
         # build plantuml head
         dt = time.strftime("%Y-%m-%d %H:%M", time.localtime())
         print("start print "+m+"to uml")
-        for p, classes in pkg_dict.items():
+        for p, pkg in pkg_dict.items():
             uml = "@startuml \n"
-            uml += get_plant_head(m, {p: classes})
-            for file in classes:
+            uml += get_plant_head(m, {p: pkg.classes})
+            for file in pkg.classes:
                 # build plantuml relation
-                uml += get_plant_relation(file,
-                                          file.suspicious_dependencies, False)
+                uml += get_plant_relation(file,file.suspicious_dependencies, False)
                 uml += get_plant_relation(file, file.suspicious_usages, True)
             uml += "\n@enduml"
             writeToFile(dt, m, p, uml)

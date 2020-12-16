@@ -123,5 +123,5 @@ if __name__ == "__main__":
             # for c in pkg.classes:
             #     print_class_with_dependencies(c, True)
 
-    # console_markdown(module_dict)
-    # console_plant_uml(module_dict)
+    console_markdown(module_dict)
+    #console_plant_uml(module_dict)
