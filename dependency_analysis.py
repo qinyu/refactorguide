@@ -86,10 +86,10 @@ def filter_suspicious_dependency(module_dict):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
-                c.suspicious_dependencies = filter(
-                    partial(dependency_filter, c), c.dependencies)
-                c.suspicious_usages = filter(
-                    partial(usage_filter, c), c.usages)
+                c.suspicious_dependencies = list(filter(
+                    partial(dependency_filter, c), c.dependencies))
+                c.suspicious_usages = list(filter(
+                    partial(usage_filter, c), c.usages))
 
 
 def update_class_usages(class_list, class_map):
@@ -124,8 +124,10 @@ if __name__ == "__main__":
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             print_package_with_dependencies(pkg, True)
-            # for c in pkg.classes:
-            #     print_class_with_dependencies(c, True)
+            for c in pkg.classes:
+                print_class_with_dependencies(c, True)
+                break
+            break
 
-    console_markdown(module_dict)
-    #console_plant_uml(module_dict)
+    # console_markdown(module_dict)
+    # console_plant_uml(module_dict)
