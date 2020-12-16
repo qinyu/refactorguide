@@ -5,7 +5,7 @@ from model import grouped_info,grouped_by_modules_and_logic_packages
 
 def console_markdown(module_dict):
     for m, pkg_dict in module_dict.items():
-        dt = time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
         print("start print "+m+"to markdown")
         for p, pkg in pkg_dict.items():
             markdown = get_markdown(m, p, pkg)
@@ -28,7 +28,7 @@ def get_markdown(module_name, package_name, pkg):
 
 
 def writeToFile(dt, m, p, uml):
-    path = dt+"/markdown/"+m
+    path = "Report_"+dt+"/"+m+"/markdown/"
     isExists = os.path.exists(path)
     # 判断结果
     if not isExists:

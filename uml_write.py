@@ -8,7 +8,7 @@ from model import  grouped_by_modules_and_logic_packages
 def console_plant_uml(module_dict):
     for m, pkg_dict in module_dict.items():
         # build plantuml head
-        dt = time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
         print("start print "+m+"to uml")
         for p, pkg in pkg_dict.items():
             uml = "@startuml \n\n"
@@ -62,7 +62,7 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
 
 
 def writeToFile(dt, m, p, uml):
-    path = dt+"/uml/"+m
+    path = "report_"+dt+"/"+m+"/uml/"
     isExists = os.path.exists(path)
     # 判断结果
     if not isExists:

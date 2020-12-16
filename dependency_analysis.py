@@ -6,9 +6,9 @@ from operator import attrgetter
 from config import category_re_dict, class_path_filter, dependency_filter, logic_pacakges, usage_filter, sorter
 
 from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, print_package_with_grouped_dependencies, grouped_by_modules_and_logic_packages
-from uml import console_plant_uml
+from uml_write import console_plant_uml
 from statistics import console_statistics_data
-from markdown import console_markdown
+from markdown_write import console_markdown
 
 
 def parse_class(file_node):
