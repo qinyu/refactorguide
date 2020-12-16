@@ -102,7 +102,6 @@ def update_class_usages(class_list):
         c.suspicious_usages = sorted(c.suspicious_usages, key=sorter)
 
 
-
 if __name__ == "__main__":
     all_classes = [c for c in parse_classes_with_dependencies(
         "fast_hub_deps.xml", class_path_filter) if c]
@@ -110,14 +109,15 @@ if __name__ == "__main__":
     update_class_usages(all_classes)
 
     module_dict = group_by_modules_and_logic_packages(all_classes)
+    module_dict = {k: module_dict.get(k, {}) for k in logic_pacakges.keys()}
     filter_suspicious_dependency(module_dict)
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             print_package_with_grouped_dependencies(pkg, True)
-            for c in pkg.classes:
-                print_class_with_dependencies(c, True)
-                break
-            break
+            # for c in pkg.classes:
+            #     print_class_with_dependencies(c, True)
+            #     break
+            # break
 
     # console_markdown(module_dict)
     # console_plant_uml(module_dict)

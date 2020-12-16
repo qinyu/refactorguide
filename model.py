@@ -76,7 +76,7 @@ class CLS(Statistics):
         self.name = name
         self.package = package.replace("/", ".")
         self.logic_package = logic_package if logic_package else self.package
-        self.module = module.lstrip(".").replace("/", ".")
+        self.module = module.replace("/", ".").lstrip(".")
         self.dependencies = dependencies
         self.suspicious_dependencies = []
         self.usages = []
