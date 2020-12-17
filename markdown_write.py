@@ -5,8 +5,8 @@ from model import grouped_info, grouped_by_modules_and_logic_packages
 
 
 def console_markdown(module_dict):
+    dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
     for m, pkg_dict in module_dict.items():
-        dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
         print("start print "+m+"to markdown")
         for p, pkg in pkg_dict.items():
             markdown = get_markdown(m, p, pkg)

@@ -6,9 +6,9 @@ from model import grouped_by_modules_and_logic_packages
 
 
 def console_plant_uml(module_dict):
+    dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
     for m, pkg_dict in module_dict.items():
         # build plantuml head
-        dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
         print("start print "+m+"to uml")
         for p, pkg in pkg_dict.items():
             uml = "@startuml \n\n"
@@ -56,11 +56,9 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
         else:
             condition = ""
         if(isUsage):
-            str.append(uml_relation_format.format(
-                file.name, condition, dep_file.name))
+            str.append(uml_relation_format.format(file.name, condition, dep_file.name," :"+"".join([bs.description for bs in dep_file.bad_smells])))
         else:
-            str.append(uml_back_relation_format.format(
-                file.name, condition, dep_file.name))
+            str.append(uml_back_relation_format.format(file.name, condition, dep_file.name," :"+"".join([bs.description for bs in dep_file.bad_smells])))
     return ''.join(str)
 
 
@@ -75,5 +73,5 @@ def writeToFile(dt, m, p, uml):
 uml_module_format = "Package {} {{ \n{} }} \n"
 uml_package_format = "Package {} {{ \n{}   }} \n"
 uml_class_format = "  class {} \n"
-uml_relation_format = "{} <|-{}- {}\n"
-uml_back_relation_format = "{} -{}-|> {}\n"
+uml_relation_format = "{} <|-{}- {} {}\n"
+uml_back_relation_format = "{} -{}-|> {} {}\n"
