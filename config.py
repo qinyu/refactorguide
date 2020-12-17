@@ -74,8 +74,8 @@ dependency_smells = [
     BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
     BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除"),
     ShouldNotDepend(
-        {'module': 'app', 'package': 'com.prettifier.pretty.helper'},
-        {'module': 'app', 'package': 'com.fastaccess.data.dao'}
+        {'module': 'app', 'package': 'com.prettifier.pretty.helper', },
+        {'module': 'app', 'package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
     )
 ]
 
