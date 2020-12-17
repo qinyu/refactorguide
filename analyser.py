@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 from config import *
 
-from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, grouped_by_modules_and_logic_packages, sorter
+from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, grouped_by_modules_and_logic_packages, sorter, package_description
 from uml_write import console_plant_uml
 from statistics import console_statistics_data
 from markdown_write import console_markdown
@@ -15,7 +15,7 @@ def parse_class(file_node):
     if match:
         dependencies = [parse_dependency(d)
                         for d in file_node.findall("dependency")]
-        return CLS(dependencies=sorted([d for d in dependencies if d], key=sorter), **match.groupdict())
+        return CLS(dependencies=[d for d in dependencies if d], **match.groupdict())
     # print("Warning: class missed %s" % path)
     return None
 
@@ -97,6 +97,7 @@ def update_class_usages(class_list):
                                             u.module, cat, u.logic_package))
                         break
 
+    #
     for c in class_list:
         c.usages = sorted(c.usages, key=sorter)
 
@@ -125,55 +126,6 @@ def filter_interested_modules(module_dict, module_packages):
         else:
             print("Warning: interested module missed %s" % m)
     return _m_dict
-
-
-pd_format = """
-包：{}
-================================================================================
-一共有依赖 {} 项，坏味道依赖 {} 项
-一共有调用 {} 处，坏味道调用 {} 处
---------------------------------------------------------------------------------
-包中依赖最多前3个类坏味道依赖共计{}项（占比{}），它们是：
-{}
---------------------------------------------------------------------------------
-包中调用最多前3个类坏味道调用共计{}处（占比{}），它们是：
-{}
---------------------------------------------------------------------------------
-"""
-
-
-def package_description(pkg: PKG):
-
-    def _percenet(sub, total):
-        return '{:.2%}'.format(sub/total if total > 0 else 0)
-
-    smell_dependencies_count = len(pkg.suspicious_dependencies)
-    smell_usages_count = len(pkg.suspicious_usages)
-    top_smell_dependencies_classes = sorted(
-        pkg.classes, key=lambda c: len(c.suspicious_dependencies), reverse=True)[:3]
-    top_smell_dependencies_count = len(
-        set([d for c in top_smell_dependencies_classes for d in c.suspicious_dependencies])) if smell_dependencies_count > 0 else 0
-    top_smell_usages_classes = sorted(
-        pkg.classes, key=lambda c: len(c.suspicious_usages), reverse=True)[:3]
-    top_smell_usages_count = len(
-        set([d for c in top_smell_usages_classes for d in c.suspicious_usages])) if smell_usages_count > 0 else 0
-    return pd_format.format(
-        pkg.name,
-        len(pkg.dependencies),
-        smell_dependencies_count,
-        len(pkg.usages),
-        smell_usages_count,
-        top_smell_dependencies_count,
-        '{:.2%}'.format(
-            top_smell_dependencies_count/smell_dependencies_count if smell_dependencies_count > 0 else 0),
-        "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
-        top_smell_usages_count,
-        '{:.2%}'.format(
-            top_smell_usages_count/smell_usages_count if smell_usages_count > 0 else 0),
-        "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
-    )
 
 
 if __name__ == "__main__":
