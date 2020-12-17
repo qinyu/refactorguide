@@ -89,6 +89,10 @@ class CLS(BASE):
         self.dependencies = dependencies
         self.usages = []
 
+    @property
+    def full_name(self):
+        return "{}.{}".format(self.package, self.name)
+
     def __str__(self):
         return str(self.__dict__)
 

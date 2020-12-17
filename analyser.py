@@ -5,6 +5,7 @@ from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_wi
 from uml_write import console_plant_uml
 from statistics import console_statistics_data
 from markdown_write import console_markdown
+from functools import reduce
 
 
 def parse_class(file_node):
@@ -125,6 +126,55 @@ def filter_interested_modules(module_dict, module_packages):
     return _m_dict
 
 
+pd_format = """
+包：{}
+================================================================================
+一共有依赖 {} 项，坏味道依赖 {} 项
+一共有调用 {} 处，坏味道调用 {} 处
+--------------------------------------------------------------------------------
+包中依赖最多前3个类坏味道依赖共计{}项（占比{}），它们是：
+{}
+--------------------------------------------------------------------------------
+包中调用最多前3个类坏味道调用共计{}处（占比{}），它们是：
+{}
+--------------------------------------------------------------------------------
+"""
+
+
+def package_description(pkg: PKG):
+
+    def _percenet(sub, total):
+        return '{:.2%}'.format(sub/total if total > 0 else 0)
+
+    smell_dependencies_count = len(pkg.suspicious_dependencies)
+    smell_usages_count = len(pkg.suspicious_usages)
+    top_smell_dependencies_classes = sorted(
+        pkg.classes, key=lambda c: len(c.suspicious_dependencies), reverse=True)[:3]
+    top_smell_dependencies_count = len(
+        set([d for c in top_smell_dependencies_classes for d in c.suspicious_dependencies])) if smell_dependencies_count > 0 else 0
+    top_smell_usages_classes = sorted(
+        pkg.classes, key=lambda c: len(c.suspicious_usages), reverse=True)[:3]
+    top_smell_usages_count = len(
+        set([d for c in top_smell_usages_classes for d in c.suspicious_usages])) if smell_usages_count > 0 else 0
+    return pd_format.format(
+        pkg.name,
+        len(pkg.dependencies),
+        smell_dependencies_count,
+        len(pkg.usages),
+        smell_usages_count,
+        top_smell_dependencies_count,
+        '{:.2%}'.format(
+            top_smell_dependencies_count/smell_dependencies_count if smell_dependencies_count > 0 else 0),
+        "\n".join(
+            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
+        top_smell_usages_count,
+        '{:.2%}'.format(
+            top_smell_usages_count/smell_usages_count if smell_usages_count > 0 else 0),
+        "\n".join(
+            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
+    )
+
+
 if __name__ == "__main__":
     all_classes = [c for c in parse_classes_with_dependencies(
         "fast_hub_deps.xml", class_path_filter) if c]
@@ -132,16 +182,17 @@ if __name__ == "__main__":
     update_class_usages(all_classes)
 
     module_dict = group_by_modules_and_logic_packages(all_classes)
-    module_dict = filter_interested_packages(module_dict, logic_pacakges)
+    # module_dict = filter_interested_packages(module_dict, logic_pacakges)
 
     find_smells(module_dict)
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
-            print_package_with_dependencies(pkg, True)
+            # print_package_with_dependencies(pkg, True)
+            print(package_description(pkg))
             # for c in pkg.classes:
             # print_class_with_dependencies(c, True)
             # break
-            # break
+        break
 
     # console_markdown(module_dict)
     # console_plant_uml(module_dict)
