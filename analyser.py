@@ -122,9 +122,9 @@ if __name__ == "__main__":
         for p, pkg in pkg_dict.items():
             print_package_with_dependencies(pkg, True)
             # for c in pkg.classes:
-                # print_class_with_dependencies(c, True)
-                # break
+            # print_class_with_dependencies(c, True)
+            # break
             # break
 
-    console_markdown(module_dict)
-    console_plant_uml(module_dict)
+    # console_markdown(module_dict)
+    # console_plant_uml(module_dict)

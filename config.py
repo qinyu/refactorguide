@@ -51,10 +51,32 @@ class BadSmell(object):
         return self.description
 
 
+class ShouldNotDepend(BadSmell):
+    def __init__(self, from_dict, to_dict):
+        def check(cls, dep):
+            for k, v in from_dict.items():
+                if getattr(cls, k) != v:
+                    return False
+            for k, v in to_dict.items():
+                if getattr(dep, k) != v:
+                    return False
+            return True
+
+        description = "{}不应该依赖{}".format(
+            "里的".join(["{}:{}".format(k, v) for k, v in from_dict.items()]),
+            "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
+        )
+        super().__init__(check, description)
+
+
 dependency_smells = [
     BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
     BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
-    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
+    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除"),
+    ShouldNotDepend(
+        {'module': 'app', 'package': 'com.prettifier.pretty.helper', },
+        {'module': 'app', 'package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
+    )
 ]
 
 usage_smells = [
