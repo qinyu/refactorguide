@@ -100,12 +100,29 @@ def update_class_usages(class_list):
 
 
 def filter_interested_packages(module_dict, module_packages):
-    return {m: {p: module_dict.get(m, {}).get(p, {}) for p in pkg_names}
-            for m, pkg_names in module_packages.items()}
+    _m_dict = {}
+    for m in module_packages.keys():
+        _p_dict = {}
+        if m in module_dict.keys():
+            for p in module_packages[m]:
+                if p in module_dict[m].keys():
+                    _p_dict[p] = module_dict[m][p]
+                else:
+                    print("Warning: interested pacakge missed %s:%s" % (m, p))
+            _m_dict[m] = _p_dict
+        else:
+            print("Warning: interested module missed %s" % m)
+    return _m_dict
 
 
 def filter_interested_modules(module_dict, module_packages):
-    return {m: module_dict.get(m, {}) for m in module_packages.keys()}
+    _m_dict = {}
+    for m in module_packages.keys():
+        if m in module_dict.keys():
+            _m_dict[m] = module_dict[m]
+        else:
+            print("Warning: interested module missed %s" % m)
+    return _m_dict
 
 
 if __name__ == "__main__":
@@ -115,7 +132,7 @@ if __name__ == "__main__":
     update_class_usages(all_classes)
 
     module_dict = group_by_modules_and_logic_packages(all_classes)
-    # module_dict = filter_interested_packages(module_dict, logic_pacakges)
+    module_dict = filter_interested_packages(module_dict, logic_pacakges)
 
     find_smells(module_dict)
     for m, pkg_dict in module_dict.items():
