@@ -1,8 +1,9 @@
 # coding=utf-8
 
-from config import sorter
 from itertools import groupby
 from operator import attrgetter
+
+sorter = attrgetter('module', 'logic_package', 'package', 'name')
 
 
 class BASE(object):
@@ -90,8 +91,28 @@ class CLS(BASE):
         self.usages = []
 
     @property
+    def dependencies(self):
+        return self._dependencies
+
+    @dependencies.setter
+    def dependencies(self, dependencies):
+        self._dependencies = sorted(dependencies, key=sorter)
+
+    @property
+    def usages(self):
+        return self._usages
+
+    @usages.setter
+    def usages(self, usages):
+        self._usages = sorted(usages, key=sorter)
+
+    @property
     def full_name(self):
         return "{}.{}".format(self.package, self.name)
+
+    @property
+    def logic_name(self):
+        return self.full_name[:len(self.logic_package)]
 
     def __str__(self):
         return str(self.__dict__)
@@ -167,6 +188,44 @@ class PKG(BASE):
     def suspicious_usages(self):
         return sorted(set([u for c in self.classes for u in c.suspicious_usages]), key=sorter)
 
+    @property
+    def classes(self):
+        return self._classes
+
+    @classes.setter
+    def classes(self, classes):
+        self._classes = sorted(classes, key=sorter)
+
+
+class BadSmell(object):
+    def __init__(self, check, description):
+        self.check = check
+        self.description = description
+
+    def __call__(self, cls, dep):
+        return self.check(cls, dep)
+
+    def __str__(self):
+        return self.description
+
+
+class ShouldNotDepend(BadSmell):
+    def __init__(self, from_dict, to_dict):
+        def check(cls, dep):
+            for k, v in from_dict.items():
+                if getattr(cls, k) != v:
+                    return False
+            for k, v in to_dict.items():
+                if getattr(dep, k) != v:
+                    return False
+            return True
+
+        description = "{}不应该依赖{}".format(
+            "里的".join(["{}:{}".format(k, v) for k, v in from_dict.items()]),
+            "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
+        )
+        super().__init__(check, description)
+
 
 c_format = '''{}
 {category} Class '{name}' in '{package}' belongs to '{module}'
@@ -206,36 +265,25 @@ def grouped_by_modules_and_logic_packages(classes):
 def d_format_oneline(d):
     _str = d.package + "." + d.name
     if len(d.bad_smells) > 0:
-        _str += " (" + \
-            ", ".join(
-                [bs.description for bs in d.bad_smells]) + ")"
-    return _str
-
-
-def d_format_oneline(d):
-    _str = d.package + "." + d.name
-    if len(d.bad_smells) > 0:
-        _str += " (" + \
-            ", ".join(
-                [bs.description for bs in d.bad_smells]) + ")"
+        _str += " (" + "; ".join(
+            [bs.description for bs in d.bad_smells]) + ")  "
     return _str
 
 
 def deps_format(dependencies, join_str="\n│   ├──", end_str="\n│   └──"):
     d_onelines = [d_format_oneline(d) for d in dependencies]
-    return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + \
-        end_str + d_onelines[-1]
+    return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
 def grouped_info(module_dict):
     _str = ""
     for m, pkgs in module_dict.items():
-        _str += m
+        _str += m + "  "
         keys = list(pkgs.keys())
         for p in keys[:-1]:
-            _str += "\n├──" + p
+            _str += "\n├──" + p + "  "
             _str += deps_format(pkgs[p])
-        _str += "\n└──" + keys[-1]
+        _str += "\n└──" + keys[-1] + "  "
         _str += deps_format(pkgs[keys[-1]],
                             join_str="\n    ├──", end_str="\n    └──")
         _str += "\n"
@@ -272,3 +320,50 @@ def print_package_with_dependencies(cls, suspicious_only=False):
         *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
     print(p_format.format("-"*80,
                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
+
+
+pd_format = """
+# 包：{}
+================================================================================
+一共有依赖 {} 项，坏味道依赖 {} 项
+一共有调用 {} 处，坏味道调用 {} 处
+--------------------------------------------------------------------------------
+坏味道依赖最多的3个类，共计{}个坏味道（占比{}），它们是：
+{}
+--------------------------------------------------------------------------------
+坏味道调用最多的3个类，共计{}个坏味道（占比{}），它们是：
+{}
+--------------------------------------------------------------------------------
+"""
+
+
+def package_description(pkg: PKG):
+
+    def _percenet(sub, total):
+        return '{:.2%}'.format(sub/total if total > 0 else 0)
+
+    smell_dependencies_count = len(pkg.suspicious_dependencies)
+    smell_usages_count = len(pkg.suspicious_usages)
+    top_smell_dependencies_classes = sorted(
+        pkg.classes, key=lambda c: len(c.suspicious_dependencies), reverse=True)[:3]
+    top_smell_dependencies_count = len(
+        set([d for c in top_smell_dependencies_classes for d in c.suspicious_dependencies])) if smell_dependencies_count > 0 else 0
+    top_smell_usages_classes = sorted(
+        pkg.classes, key=lambda c: len(c.suspicious_usages), reverse=True)[:3]
+    top_smell_usages_count = len(
+        set([d for c in top_smell_usages_classes for d in c.suspicious_usages])) if smell_usages_count > 0 else 0
+    return pd_format.format(
+        pkg.name,
+        len(pkg.dependencies),
+        smell_dependencies_count,
+        len(pkg.usages),
+        smell_usages_count,
+        top_smell_dependencies_count,
+        _percenet(top_smell_dependencies_count, smell_dependencies_count),
+        "\n".join(
+            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
+        top_smell_usages_count,
+        _percenet(top_smell_usages_count, smell_usages_count),
+        "\n".join(
+            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
+    )

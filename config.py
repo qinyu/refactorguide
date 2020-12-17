@@ -1,9 +1,6 @@
 # coding = utf-8s
 import re
-
-from operator import attrgetter
-
-sorter = attrgetter('module', 'logic_package', 'package', 'name')
+from model import BadSmell, ShouldNotDepend
 
 category_re_dict = {
     "Production": re.compile(
@@ -39,59 +36,17 @@ def smell_cylic_dependency(
         dep) and cls.path in [u.path for u in cls.usages]
 
 
-class BadSmell(object):
-    def __init__(self, check, description):
-        self.check = check
-        self.description = description
-
-    def __call__(self, cls, dep):
-        return self.check(cls, dep)
-
-    def __str__(self):
-        return self.description
-
-
-class ShouldNotDepend(BadSmell):
-    def __init__(self, from_dict, to_dict):
-        def check(cls, dep):
-            for k, v in from_dict.items():
-                if getattr(cls, k) != v:
-                    return False
-            for k, v in to_dict.items():
-                if getattr(dep, k) != v:
-                    return False
-            return True
-
-        description = "{}不应该依赖{}".format(
-            "里的".join(["{}:{}".format(k, v) for k, v in from_dict.items()]),
-            "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
-        )
-        super().__init__(check, description)
-
-
 dependency_smells = [
     BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
     BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
     BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除"),
     ShouldNotDepend(
-        {'module': 'app', 'package': 'com.prettifier.pretty.helper', },
-        {'module': 'app', 'package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
+        {'module': 'app', 'logic_package': 'com.prettifier.pretty.helper', },
+        {'module': 'app', 'logic_package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
     )
 ]
 
-usage_smells = [
-    BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
-    BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
-    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
-]
-
-
-def dependency_filter(cls, dep): return is_production(
-    dep) and smell_cross_package(cls, dep)
-
-
-def usage_filter(cls, usage): return smell_cross_package(usage, cls)
-
+usage_smells = dependency_smells
 
 logic_pacakges = {
     # 'app':  ['com.fastaccess.ui.modules']

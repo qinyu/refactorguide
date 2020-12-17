@@ -1,7 +1,8 @@
+# coding=utf-8
 import xml.etree.ElementTree as ET
 from config import *
 
-from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, grouped_by_modules_and_logic_packages
+from model import CLS, DEP, PKG, print_class_with_dependencies, print_package_with_dependencies, grouped_by_modules_and_logic_packages, sorter
 from uml_write import console_plant_uml
 from statistics import console_statistics_data
 from markdown_write import console_markdown
@@ -15,7 +16,7 @@ def parse_class(file_node):
         dependencies = [parse_dependency(d)
                         for d in file_node.findall("dependency")]
         return CLS(dependencies=sorted([d for d in dependencies if d], key=sorter), **match.groupdict())
-    print("Warning: class missed %s" % path)
+    # print("Warning: class missed %s" % path)
     return None
 
 
@@ -73,11 +74,11 @@ def find_smells(module_dict):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
-                for d in c.dependencies:
+                for d in [d for d in c.dependencies if d.category == 'Production']:
                     for smell in dependency_smells:
                         if smell(c, d):
                             d.bad_smells.append(smell)
-                for u in c.usages:
+                for u in [u for u in c.usages if u.category == 'Production']:
                     for smell in usage_smells:
                         if smell(u, c):
                             u.bad_smells.append(smell)
@@ -194,5 +195,5 @@ if __name__ == "__main__":
             # break
         break
 
-    # console_markdown(module_dict)
-    # console_plant_uml(module_dict)
+    console_markdown(module_dict)
+    console_plant_uml(module_dict)
