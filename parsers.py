@@ -1,23 +1,32 @@
-from model import CLS, DEP, PKG, grouped_by_modules_and_logic_packages
+from model import CLS, DEP, PKG, grouped_by_modules_and_packages
 import re
 import xml.etree.ElementTree as ET
 
 idea_category_dict = {
     "Production": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
     "Android": re.compile(
-        r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)([/].*\.jar[!])*[/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)([/].*\.jar[!])*[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
     "ThirdParty": re.compile(
-        r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
     "LocalJar": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
     "JDK": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<package>.*)[/](?P<name>.*)[.].*$)")
+        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)")
 }
 
 
 def idea_java_file_filter(
     file_path: str) -> bool: return file_path.endswith("java")
+
+
+def covnvert_class_match_dict(_dict):
+    """
+    docstring
+    """
+    _dict["raw_package"] = _dict["raw_package"].replace("/", ".")
+    _dict["module"] = _dict["module"].replace("/", ".").lstrip(".")
+    return _dict
 
 
 def parse_idea_class(file_node):
@@ -26,7 +35,7 @@ def parse_idea_class(file_node):
     if match:
         dependencies = [parse_idea_dependency(d)
                         for d in file_node.findall("dependency")]
-        return CLS(dependencies=[d for d in dependencies if d], **match.groupdict())
+        return CLS(dependencies=[d for d in dependencies if d], **covnvert_class_match_dict(match.groupdict()))
     # print("Warning: class missed %s" % path)
     return None
 
@@ -39,7 +48,8 @@ def parse_idea_dependency(dependency_node):
         for cat, compiled_re in idea_category_dict.items():
             match = compiled_re.match(_path)
             if match:
-                dep = DEP(category=cat, **match.groupdict())
+                dep = DEP(category=cat, **
+                          covnvert_class_match_dict(match.groupdict()))
                 break
 
     if not dep:
@@ -56,8 +66,8 @@ def parse_idea_dependencies(file_node):
 def update_class_logic_packages(class_list, logic_pacakges):
     def update(c):
         for logic_package in logic_pacakges.get(c.module, []):
-            if c.logic_package.startswith(logic_package):
-                c.logic_package = logic_package
+            if c.package.startswith(logic_package):
+                c.package = logic_package
                 break
         return c
 
@@ -77,8 +87,8 @@ def update_idea_class_usages(class_list):
                 usages = c.usages
                 for cat, compiled_re in idea_category_dict.items():
                     if compiled_re.match(c.path):
-                        usages.append(DEP(u.path, u.name, u.package,
-                                          u.module, cat, u.logic_package))
+                        usages.append(DEP(u.path, u.name, u.raw_package,
+                                          u.module, cat, u.package))
                         break
                 # 排序
                 c.usages = usages
@@ -91,7 +101,7 @@ def parse_idea(idea_dep_file_path, logic_pacakges):
     update_class_logic_packages(all_classes, logic_pacakges)
     update_idea_class_usages(all_classes)
 
-    module_dict = grouped_by_modules_and_logic_packages(all_classes)
+    module_dict = grouped_by_modules_and_packages(all_classes)
     for m, package_dict in module_dict.items():
         for p, p_cls_list in package_dict.items():
             package_dict[p] = PKG(m, p, p_cls_list)

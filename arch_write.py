@@ -9,8 +9,8 @@ def to_module_dict(li):
     for _dict in li:
         m = _dict['module']
         _module_dict[m] = _module_dict.get(m, {})
-        if 'logic_package' in _dict.keys():
-            p = _dict['logic_package']
+        if 'package' in _dict.keys():
+            p = _dict['package']
             _module_dict[m][p] = _module_dict[m].get(p, [])
             if 'name' in _dict.keys():
                 c = _dict['name']
@@ -27,7 +27,7 @@ def console_architecture_plant_uml():
     # group platform data
     # for item in platform:
     #     module=item.get("module")
-    #     package=item.get("logic_package")
+    #     package=item.get("package")
     #     module_dict.setdefault(module)
     #     if module_dict.get(module) is None:
     #         module_dict[module]={}

@@ -3,7 +3,7 @@
 from itertools import groupby
 from operator import attrgetter
 
-sorter = attrgetter('module', 'logic_package', 'package', 'name')
+sorter = attrgetter('module', 'package', 'raw_package', 'name')
 
 
 class BASE(object):
@@ -19,42 +19,42 @@ class BASE(object):
     @property
     def depedencies_statistics(self):
         return len(set([d.module for d in self.dependencies])),\
-            len(set([d.logic_package for d in self.dependencies])),\
+            len(set([d.package for d in self.dependencies])),\
             len(self.dependencies)
 
     @property
     def usages_statistics(self):
         return len(set([u.module for u in self.usages])),\
-            len(set([u.logic_package for u in self.usages])),\
+            len(set([u.package for u in self.usages])),\
             len(self.usages)
 
     @property
     def suspicious_depedencies_statistics(self):
         return len(set([d.module for d in self.suspicious_dependencies])),\
-            len(set([d.logic_package for d in self.suspicious_dependencies])),\
+            len(set([d.package for d in self.suspicious_dependencies])),\
             len(self.suspicious_dependencies)
 
     @property
     def suspicious_usages_statistics(self):
         return len(set([u.module for u in self.suspicious_usages])),\
-            len(set([u.logic_package for u in self.suspicious_usages])),\
+            len(set([u.package for u in self.suspicious_usages])),\
             len(self.suspicious_usages)
 
     @property
     def grouped_dependencies(self):
-        return grouped_by_modules_and_logic_packages(self.dependencies)
+        return grouped_by_modules_and_packages(self.dependencies)
 
     @property
     def grouped_suspicious_dependencies(self):
-        return grouped_by_modules_and_logic_packages(self.suspicious_dependencies)
+        return grouped_by_modules_and_packages(self.suspicious_dependencies)
 
     @property
     def grouped_usages(self):
-        return grouped_by_modules_and_logic_packages(self.usages)
+        return grouped_by_modules_and_packages(self.usages)
 
     @property
     def grouped_suspicious_usages(self):
-        return grouped_by_modules_and_logic_packages(self.suspicious_usages)
+        return grouped_by_modules_and_packages(self.suspicious_usages)
 
 
 class CLS(BASE):
@@ -67,26 +67,26 @@ class CLS(BASE):
         full path of java file this class belongs to
     name : str
         name
-    package : str
+    raw_package : str
         full package
-    logic_package:
-        parant package in which classes has some intrinsic logic, package should starts with logic_package.
+    ackage:
+        parant package in which classes has some intrinsic logic, raw_package should starts with package.
     module : str
         name of the module this class belongs to
     dependencies : list[DEP]
-        list of all using denpendencies, sorted by module, logic_package, package, name
+        list of all using denpendencies, sorted by module, raw_package, package, name
 
     Methods
     -------
     """
 
-    def __init__(self, path, name, package, module, category="Production", logic_package=None,  dependencies=[]):
+    def __init__(self, path, name, raw_package, module, category="Production", package=None,  dependencies=[]):
         self.category = category
         self.path = path
         self.name = name
-        self.package = package.replace("/", ".")
-        self.logic_package = logic_package if logic_package else self.package
-        self.module = module.replace("/", ".").lstrip(".")
+        self.raw_package = raw_package
+        self.package = package if package else self.raw_package
+        self.module = module
         self.dependencies = dependencies
         self.usages = []
 
@@ -108,11 +108,11 @@ class CLS(BASE):
 
     @property
     def full_name(self):
-        return "{}.{}".format(self.package, self.name)
+        return "{}.{}".format(self.raw_package, self.name)
 
     @property
     def logic_name(self):
-        return self.full_name[:len(self.logic_package)]
+        return self.full_name[len(self.package):]
 
     @property
     def is_production(self):
@@ -153,9 +153,8 @@ class DEP(CLS):
     -------
     """
 
-    def __init__(self, path, name, package, module, category, logic_package=None):
-        CLS.__init__(self, path, name, package,
-                     module, category, logic_package)
+    def __init__(self, path, name, raw_package, module, category, package=None):
+        CLS.__init__(self, path, name, raw_package, module, category, package)
         self.bad_smells = []
 
     def __str__(self):
@@ -257,12 +256,12 @@ class MOD(BASE):
         self._packages = sorted(packages, key=attrgetter("name"))
 
 
-def grouped_by_modules_and_logic_packages(classes: list[CLS]) -> dict[str:dict[str:CLS]]:
+def grouped_by_modules_and_packages(classes: list[CLS]) -> dict[str:dict[str:CLS]]:
     module_dict = {}
     sorted_classes = sorted(classes, key=sorter)
     for m, m_cls_list in groupby(sorted_classes, key=attrgetter("module")):
         package_dict = {}
-        for p, p_cls_list in groupby(list(m_cls_list), key=attrgetter("logic_package")):
+        for p, p_cls_list in groupby(list(m_cls_list), key=attrgetter("package")):
             package_dict[p] = list(p_cls_list)
 
         module_dict[m] = package_dict

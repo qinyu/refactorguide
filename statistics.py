@@ -73,7 +73,7 @@ def print_top_classes(all_classes_list):
     print("\n"+"依赖数量Top 10 类:")
     for i in range(0, 10):
         file = sort_dep_classes_list[i]
-        print(c_format.format(file.name, file.package,
+        print(c_format.format(file.name, file.raw_package,
                               file.module, len(file.suspicious_dependencies)))
 
     sort_usages_classes_list = sorted(
@@ -82,7 +82,7 @@ def print_top_classes(all_classes_list):
     print("\n"+"被引用数量Top 10 类:")
     for i in range(0, 10):
         file = sort_usages_classes_list[i]
-        print(c_format.format(file.name, file.package,
+        print(c_format.format(file.name, file.raw_package,
                               file.module, len(file.suspicious_usages)))
 
 

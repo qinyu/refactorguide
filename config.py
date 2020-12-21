@@ -12,8 +12,8 @@ dependency_smells = [
     BadSmellCrossPackage(),
     BadSmellCylicDependency(),
     ShouldNotDepend(
-        {'module': 'app', 'logic_package': 'com.prettifier.pretty.helper', },
-        {'module': 'app', 'logic_package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
+        {'module': 'app', 'package': 'com.prettifier.pretty.helper', },
+        {'module': 'app', 'package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
     )
 ]
 

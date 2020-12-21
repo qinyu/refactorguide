@@ -39,7 +39,7 @@ def smell_cross_module(
 
 
 def smell_cross_package(
-    cls, dep): return dep.is_production and cls.module == dep.module and cls.logic_package != dep.logic_package
+    cls, dep): return dep.is_production and cls.module == dep.module and cls.package != dep.package
 
 
 def smell_cylic_dependency(

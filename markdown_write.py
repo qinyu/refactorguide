@@ -4,7 +4,7 @@ from utils import export_to_file
 from formatters import class_description, dependencies_tree_description, package_description
 from model import BASE, PKG
 
-oneline_md_format = "[{full_name}](../{logic_package}/{full_name}.md)"
+oneline_md_format = "[{full_name}](../{package}/{full_name}.md)"
 
 
 def smells_markdown_depscription(base: BASE):

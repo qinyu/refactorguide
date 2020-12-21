@@ -3,7 +3,7 @@
 import time
 import os
 from utils import export_to_file
-from model import grouped_by_modules_and_logic_packages
+from model import grouped_by_modules_and_packages
 
 
 def console_plant_uml(report_dir, module_dict):
@@ -19,7 +19,7 @@ def console_plant_uml(report_dir, module_dict):
                 group_classes += file.suspicious_dependencies
                 group_classes += file.suspicious_usages
             # build plantuml head
-            group_dict = grouped_by_modules_and_logic_packages(
+            group_dict = grouped_by_modules_and_packages(
                 pkg.classes+group_classes)
             uml += "".join([get_plant_head(m, group_pkg_dict)
                             for group_m, group_pkg_dict in group_dict.items()])
