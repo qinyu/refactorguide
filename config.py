@@ -2,6 +2,17 @@
 
 from smells import ShouldNotDepend, BadSmellCrossModule, BadSmellCrossPackage, BadSmellCylicDependency
 
+platform = {
+    # 'module': 'app', 'package': 'com.prettifier.pretty.helper'
+}
+service = {}
+business = {}
+application = {}
+
+layers = [
+    application, business, service, platform
+]
+
 logic_pacakges = {
     # 'app':  ['com.fastaccess.ui.modules']
 }

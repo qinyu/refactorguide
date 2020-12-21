@@ -23,7 +23,7 @@ def console_architecture_plant_uml():
     dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
     module_dict = {}
     uml = ""
-    module_dict = to_module_dict(zhongtai)
+    module_dict = to_module_dict(service)
     # group platform data
     # for item in platform:
     #     module=item.get("module")
