@@ -18,7 +18,7 @@ def smells_markdown_depscription(base: BASE):
 
 def console_markdown(module_dict: dict[str: dict[str:PKG]]):
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
-    report_dir = "Report_"+dt+"/"
+    report_dir = "report-"+dt+"/"
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             export_to_file(report_dir + m + "/markdown/" + p + "/", "_pacakge_.md",
@@ -33,12 +33,4 @@ def export_to_file(dir, file, md_content):
     with open(dir + "/" + file, 'w', encoding='utf-8') as f:
         f.write(''.join(md_content))
 
-
-md_module_format = "# {} \n"
-md_package_format = """包：{} 
---------------------  
-总共有 {} 项依赖，被调用 {} 处  
---------------------  
-"""
-md_class_format = "{} (依赖项{},被调用{})\n"
 md_line = "\n--------------------\n"

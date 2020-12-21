@@ -128,6 +128,13 @@ class CLS(BASE):
     def __hash__(self):
         return hash(self.path)
 
+    def one_line_str(self, template="{full_name}"):
+        return template.format(**self.all_attributes)
+
+    @property
+    def all_attributes(self):
+        return dict(vars(self), full_name=self.full_name)
+
 
 class DEP(CLS):
     """
@@ -164,10 +171,17 @@ class DEP(CLS):
     def __hash__(self):
         return hash(self.path)
 
+    def one_line_str(self, template="{full_name}"):
+        _str = super().one_line_str(template)
+        if len(self.bad_smells) > 0:
+            _str += " (" + "; ".join(
+                [bs.description for bs in self.bad_smells]) + ")  "
+        return _str
+
 
 class PKG(BASE):
 
-    def __init__(self, module,  name, classes):
+    def __init__(self, module, name, classes):
         self.classes = classes
         self.name = name
         self.module = module
@@ -195,6 +209,41 @@ class PKG(BASE):
     @classes.setter
     def classes(self, classes):
         self._classes = sorted(classes, key=sorter)
+
+    @property
+    def full_name(self):
+        return self.name
+
+
+class MOD(BASE):
+
+    def __init__(self, name, classes):
+        self.packages = classes
+        self.name = name
+
+    @property
+    def dependencies(self):
+        return sorted(set([d for pkg in self.packages for d in pkg.dependencies]), key=sorter)
+
+    @property
+    def suspicious_dependencies(self):
+        return sorted(set([d for pkg in self.packages for d in pkg.suspicious_dependencies]), key=sorter)
+
+    @property
+    def usages(self):
+        return sorted(set([u for pkg in self.packages for u in pkg.usages]), key=sorter)
+
+    @property
+    def suspicious_usages(self):
+        return sorted(set([u for pkg in self.packages for u in pkg.suspicious_usages]), key=sorter)
+
+    @property
+    def packages(self):
+        return self._packages
+
+    @packages.setter
+    def packages(self, packages):
+        self._packages = sorted(packages, key=attrgetter("name"))
 
 
 class BadSmell(object):
@@ -262,16 +311,16 @@ def grouped_by_modules_and_logic_packages(classes):
     return module_dict
 
 
-def d_format_oneline(d):
-    _str = d.package + "." + d.name
-    if len(d.bad_smells) > 0:
-        _str += " (" + "; ".join(
-            [bs.description for bs in d.bad_smells]) + ")  "
-    return _str
+# def d_format_oneline(d):
+#     _str = d.package + "." + d.name
+#     if len(d.bad_smells) > 0:
+#         _str += " (" + "; ".join(
+#             [bs.description for bs in d.bad_smells]) + ")  "
+#     return _str
 
 
-def deps_format(dependencies, join_str="\n│   ├──", end_str="\n│   └──"):
-    d_onelines = [d_format_oneline(d) for d in dependencies]
+def deps_format(dependencies: list[DEP], join_str="\n│   ├──", end_str="\n│   └──"):
+    d_onelines = [d.one_line_str() for d in dependencies]
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
@@ -290,7 +339,7 @@ def grouped_info(module_dict):
     return _str
 
 
-def grouped_dependenies_of(class_or_package, suspicious_only=False):
+def grouped_dependenies_of(class_or_package: BASE, suspicious_only=False):
     module_dict = class_or_package.grouped_suspicious_dependencies if suspicious_only else class_or_package.grouped_dependencies
     return grouped_info(module_dict)
 

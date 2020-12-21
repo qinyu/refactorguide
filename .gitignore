@@ -130,6 +130,7 @@ dmypy.json
 
 .vscode/
 Report_*/
+report-*/
 temp/
 
 .DS_Store
