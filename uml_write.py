@@ -2,11 +2,12 @@
 # coding=utf-8
 import time
 import os
+from utils import export_to_file
 from model import grouped_by_modules_and_logic_packages
 
 
-def console_plant_uml(module_dict):
-    dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
+def console_plant_uml(report_dir, module_dict):
+    # dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
     for m, pkg_dict in module_dict.items():
         # build plantuml head
         print("start print "+m+"to uml")
@@ -29,7 +30,7 @@ def console_plant_uml(module_dict):
                                           file.suspicious_dependencies, False)
                 uml += get_plant_relation(file, file.suspicious_usages, True)
             uml += "\n@enduml"
-            writeToFile(dt, m, p, uml)
+            export_to_file(report_dir+"/" + m + "/"+p+"/", p+".puml", uml)
         print("end print "+m+"to uml")
 
 
@@ -56,18 +57,12 @@ def get_plant_relation(file, dep_file_name_list, isUsage):
         else:
             condition = ""
         if(isUsage):
-            str.append(uml_relation_format.format(file.name, condition, dep_file.name," :"+"".join([bs.description for bs in dep_file.bad_smells])))
+            str.append(uml_relation_format.format(file.name, condition, dep_file.name,
+                                                  " :"+"".join([bs.description for bs in dep_file.bad_smells])))
         else:
-            str.append(uml_back_relation_format.format(file.name, condition, dep_file.name," :"+"".join([bs.description for bs in dep_file.bad_smells])))
+            str.append(uml_back_relation_format.format(file.name, condition, dep_file.name,
+                                                       " :"+"".join([bs.description for bs in dep_file.bad_smells])))
     return ''.join(str)
-
-
-def writeToFile(dt, m, p, uml):
-    path = "Report_"+dt+"/"+m+"/uml/"
-    os.makedirs(path, exist_ok=True)
-    with open(path+'/'+p+".puml", 'w', encoding='utf-8') as f:
-        f.write(''.join(uml))
-    print("wirite file succes,output file name is :"+p+".puml")
 
 
 uml_module_format = "Package {} {{ \n{} }} \n"

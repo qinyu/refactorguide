@@ -114,6 +114,10 @@ class CLS(BASE):
     def logic_name(self):
         return self.full_name[:len(self.logic_package)]
 
+    @property
+    def is_production(self):
+        return self.category == "Production"
+
     def __str__(self):
         return str(self.__dict__)
 
@@ -128,7 +132,7 @@ class CLS(BASE):
     def __hash__(self):
         return hash(self.path)
 
-    def one_line_str(self, template="{full_name}"):
+    def oneline_str(self, template="{full_name}"):
         return template.format(**self.all_attributes)
 
     @property
@@ -171,8 +175,8 @@ class DEP(CLS):
     def __hash__(self):
         return hash(self.path)
 
-    def one_line_str(self, template="{full_name}"):
-        _str = super().one_line_str(template)
+    def oneline_str(self, template="{full_name}"):
+        _str = super().oneline_str(template)
         if len(self.bad_smells) > 0:
             _str += " (" + "; ".join(
                 [bs.description for bs in self.bad_smells]) + ")  "
@@ -214,6 +218,13 @@ class PKG(BASE):
     def full_name(self):
         return self.name
 
+    def oneline_str(self, template="{full_name}"):
+        return template.format(**self.all_attributes)
+
+    @property
+    def all_attributes(self):
+        return dict(vars(self), full_name=self.full_name)
+
 
 class MOD(BASE):
 
@@ -246,59 +257,6 @@ class MOD(BASE):
         self._packages = sorted(packages, key=attrgetter("name"))
 
 
-class BadSmell(object):
-    def __init__(self, check, description):
-        self.check = check
-        self.description = description
-
-    def __call__(self, cls, dep):
-        return self.check(cls, dep)
-
-    def __str__(self):
-        return self.description
-
-
-class ShouldNotDepend(BadSmell):
-    def __init__(self, from_dict, to_dict):
-        def check(cls, dep):
-            for k, v in from_dict.items():
-                if getattr(cls, k) != v:
-                    return False
-            for k, v in to_dict.items():
-                if getattr(dep, k) != v:
-                    return False
-            return True
-
-        description = "{}不应该依赖{}".format(
-            "里的".join(["{}:{}".format(k, v) for k, v in from_dict.items()]),
-            "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
-        )
-        super().__init__(check, description)
-
-
-c_format = '''{}
-{category} Class '{name}' in '{package}' belongs to '{module}'
-  depends on {}:
-    {}
-  used by {}:
-    {}
-'''
-
-p_format = '''{}
-Package '{name}' belongs to '{module}'
--------
-depends on {}:
-{}
---------
-used by {}:
-{}
-'''
-
-s_format = "{} mudules {} packages {} classes"
-
-d_format = "- {category} '{name}' in '{package}' belongs to '{module}'"
-
-
 def grouped_by_modules_and_logic_packages(classes):
     module_dict = {}
     sorted_classes = sorted(classes, key=sorter)
@@ -311,29 +269,23 @@ def grouped_by_modules_and_logic_packages(classes):
     return module_dict
 
 
-# def d_format_oneline(d):
-#     _str = d.package + "." + d.name
-#     if len(d.bad_smells) > 0:
-#         _str += " (" + "; ".join(
-#             [bs.description for bs in d.bad_smells]) + ")  "
-#     return _str
-
-
-def deps_format(dependencies: list[DEP], join_str="\n│   ├──", end_str="\n│   └──"):
-    d_onelines = [d.one_line_str() for d in dependencies]
+def deps_format(dependencies: list[DEP], oneline_format, join_str, end_str):
+    d_onelines = [d.oneline_str(oneline_format) for d in dependencies]
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
-def grouped_info(module_dict):
+def grouped_info(module_dict, oneline_format="{full_name}"):
     _str = ""
+
     for m, pkgs in module_dict.items():
         _str += m + "  "
         keys = list(pkgs.keys())
         for p in keys[:-1]:
             _str += "\n├──" + p + "  "
-            _str += deps_format(pkgs[p])
+            _str += deps_format(pkgs[p], oneline_format,
+                                join_str="\n│   ├──", end_str="\n│   └──")
         _str += "\n└──" + keys[-1] + "  "
-        _str += deps_format(pkgs[keys[-1]],
+        _str += deps_format(pkgs[keys[-1]], oneline_format,
                             join_str="\n    ├──", end_str="\n    └──")
         _str += "\n"
     return _str
@@ -349,97 +301,23 @@ def grouped_usages_of(class_or_package, suspicious_only=False):
     return grouped_info(module_dict)
 
 
-def print_class_with_dependencies(cls, suspicious_only=False):
-    deps_str = grouped_dependenies_of(cls, suspicious_only)
-    usages_str = grouped_usages_of(cls, suspicious_only)
-    deps_stats_str = s_format.format(
-        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
-    usages_stats_str = s_format.format(
-        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
-    print(c_format.format("-"*80,
-                          deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
+# def print_class_with_dependencies(cls, suspicious_only=False):
+#     deps_str = grouped_dependenies_of(cls, suspicious_only)
+#     usages_str = grouped_usages_of(cls, suspicious_only)
+#     deps_stats_str = s_format.format(
+#         *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
+#     usages_stats_str = s_format.format(
+#         *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
+#     print(c_format.format("-"*80,
+#                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
 
 
-def print_package_with_dependencies(cls, suspicious_only=False):
-    deps_str = grouped_dependenies_of(cls, suspicious_only)
-    usages_str = grouped_usages_of(cls, suspicious_only)
-    deps_stats_str = s_format.format(
-        *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
-    usages_stats_str = s_format.format(
-        *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
-    print(p_format.format("-"*80,
-                          deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
-
-
-pd_format = """
-# 包：{}
-================================================================================
-一共有依赖 {} 项，坏味道依赖 {} 项
-一共有调用 {} 处，坏味道调用 {} 处
---------------------------------------------------------------------------------
-坏味道依赖最多的{}个类，共计{}个坏味道（占比{}），它们是：
-{}
---------------------------------------------------------------------------------
-坏味道调用最多的{}个类，共计{}个坏味道（占比{}），它们是：
-{}
---------------------------------------------------------------------------------
-"""
-
-
-def package_description(pkg: PKG, top=3):
-
-    def _percenet(sub, total):
-        return '{:.2%}'.format(sub/total if total > 0 else 0)
-
-    smell_dependencies_count = len(pkg.suspicious_dependencies)
-    smell_usages_count = len(pkg.suspicious_usages)
-    smell_dependencies_classes = sorted(
-        pkg.classes, key=lambda c: len(c.suspicious_dependencies), reverse=True)
-    top_smell_dependencies_classes = smell_dependencies_classes[:top] if len(
-        smell_dependencies_classes) > top else smell_dependencies_classes
-    top_smell_dependencies_count = len(
-        set([d for c in top_smell_dependencies_classes for d in c.suspicious_dependencies])) if smell_dependencies_count > 0 else 0
-    smell_usages_classes = sorted(
-        pkg.classes, key=lambda c: len(c.suspicious_usages), reverse=True)
-    top_smell_usages_classes = smell_usages_classes[:top] if len(
-        smell_usages_classes) > top else smell_usages_classes
-    top_smell_usages_count = len(
-        set([d for c in top_smell_usages_classes for d in c.suspicious_usages])) if smell_usages_count > 0 else 0
-    return pd_format.format(
-        pkg.name,
-        len(pkg.dependencies),
-        smell_dependencies_count,
-        len(pkg.usages),
-        smell_usages_count,
-        top,
-        top_smell_dependencies_count,
-        _percenet(top_smell_dependencies_count, smell_dependencies_count),
-        "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
-        top,
-        top_smell_usages_count,
-        _percenet(top_smell_usages_count, smell_usages_count),
-        "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
-    )
-
-
-cd_format = """
-# 类：{}
-================================================================================
-一共有依赖 {} 项，坏味道依赖 {} 项
-一共有调用 {} 处，坏味道调用 {} 处
---------------------------------------------------------------------------------
-"""
-
-
-def class_description(cls: CLS):
-    smell_dependencies_count = len(cls.suspicious_dependencies)
-    smell_usages_count = len(cls.suspicious_usages)
-    return cd_format.format(
-        cls.full_name,
-        len(cls.dependencies),
-        smell_dependencies_count,
-        len(cls.usages),
-        smell_usages_count,
-    )
+# def print_package_with_dependencies(cls, suspicious_only=False):
+#     deps_str = grouped_dependenies_of(cls, suspicious_only)
+#     usages_str = grouped_usages_of(cls, suspicious_only)
+#     deps_stats_str = s_format.format(
+#         *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
+#     usages_stats_str = s_format.format(
+#         *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
+#     print(p_format.format("-"*80,
+#                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
