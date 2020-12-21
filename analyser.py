@@ -138,14 +138,14 @@ if __name__ == "__main__":
     # module_dict = filter_interested_packages(module_dict, logic_pacakges)
 
     find_smells(module_dict)
-    for m, pkg_dict in module_dict.items():
-        for p, pkg in pkg_dict.items():
-            # print_package_with_dependencies(pkg, True)
-            print(package_description(pkg))
-            # for c in pkg.classes:
-            # print_class_with_dependencies(c, True)
-            # break
-        break
+    # for m, pkg_dict in module_dict.items():
+    #     for p, pkg in pkg_dict.items():
+    #         # print_package_with_dependencies(pkg, True)
+    #         # print(package_description(pkg))
+    #         # for c in pkg.classes:
+    #         # print_class_with_dependencies(c, True)
+    #         break
+    #     break
 
     console_markdown(module_dict)
-    console_plant_uml(module_dict)
+    # console_plant_uml(module_dict)
