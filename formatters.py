@@ -18,7 +18,7 @@ pd_format = """
 """
 
 
-def package_description(pkg: PKG, top=3):
+def package_description(pkg: PKG, top=3, oneline_format="{full_name}") -> str:
 
     def _percenet(sub, total):
         return '{:.2%}'.format(sub/total if total > 0 else 0)
@@ -47,12 +47,12 @@ def package_description(pkg: PKG, top=3):
         top_smell_dependencies_count,
         _percenet(top_smell_dependencies_count, smell_dependencies_count),
         "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
+            ["{}（{}）".format(c.oneline_str(oneline_format), _percenet(len(set(c.suspicious_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
         top,
         top_smell_usages_count,
         _percenet(top_smell_usages_count, smell_usages_count),
         "\n".join(
-            ["{}（{}）".format(c.full_name, _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
+            ["{}（{}）".format(c.oneline_str(oneline_format), _percenet(len(set(c.suspicious_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
     )
 
 
@@ -65,7 +65,7 @@ cd_format = """
 """
 
 
-def class_description(cls: CLS):
+def class_description(cls: CLS) -> str:
     smell_dependencies_count = len(cls.suspicious_dependencies)
     smell_usages_count = len(cls.suspicious_usages)
     return cd_format.format(
@@ -75,3 +75,25 @@ def class_description(cls: CLS):
         len(cls.usages),
         smell_usages_count,
     )
+
+
+def deps_format(dependencies: list[CLS], oneline_format: str, join_str: str, end_str: str) -> str:
+    d_onelines = [d.oneline_str(oneline_format) for d in dependencies]
+    return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
+
+
+def dependencies_tree_description(module_dict: dict[str:dict[str:CLS]], oneline_format="{full_name}") -> str:
+    _str = ""
+
+    for m, pkgs in module_dict.items():
+        _str += m + "  "
+        keys = list(pkgs.keys())
+        for p in keys[:-1]:
+            _str += "\n├──" + p + "  "
+            _str += deps_format(pkgs[p], oneline_format,
+                                join_str="\n│   ├──", end_str="\n│   └──")
+        _str += "\n└──" + keys[-1] + "  "
+        _str += deps_format(pkgs[keys[-1]], oneline_format,
+                            join_str="\n    ├──", end_str="\n    └──")
+        _str += "\n"
+    return _str

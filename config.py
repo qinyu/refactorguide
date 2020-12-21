@@ -1,6 +1,6 @@
 # coding = utf-8s
 
-from smells import BadSmell, ShouldNotDepend, smell_cross_module, smell_cross_package, smell_cylic_dependency
+from smells import ShouldNotDepend, BadSmellCrossModule, BadSmellCrossPackage, BadSmellCylicDependency
 
 logic_pacakges = {
     # 'app':  ['com.fastaccess.ui.modules']
@@ -8,9 +8,9 @@ logic_pacakges = {
 
 
 dependency_smells = [
-    BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
-    BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
-    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除"),
+    BadSmellCrossModule(),
+    BadSmellCrossPackage(),
+    BadSmellCylicDependency(),
     ShouldNotDepend(
         {'module': 'app', 'logic_package': 'com.prettifier.pretty.helper', },
         {'module': 'app', 'logic_package': 'com.fastaccess.data.dao', 'name': 'NameParser'}

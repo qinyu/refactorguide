@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from model import CLS
+from model import CLS, PKG
 
 
 class BadSmell(object):
@@ -46,28 +46,30 @@ def smell_cylic_dependency(
     cls, dep): return dep.is_production and cls.path in [u.path for u in cls.usages]
 
 
-dependency_smells = [
-    BadSmell(smell_cross_module, "此依赖关系跨模块，需进一步分析"),
-    BadSmell(smell_cross_package, "此依赖关系跨包，需进一步分析"),
-    BadSmell(smell_cylic_dependency, "此依赖是循环依赖，应当解除"),
-    ShouldNotDepend(
-        {'module': 'app', 'logic_package': 'com.prettifier.pretty.helper', },
-        {'module': 'app', 'logic_package': 'com.fastaccess.data.dao', 'name': 'NameParser'}
-    )
-]
-
-usage_smells = dependency_smells
+class BadSmellCrossModule(BadSmell):
+    def __init__(self) -> None:
+        super().__init__(smell_cross_module, "此依赖关系跨模块，需进一步分析")
 
 
-def find_smells(module_dict):
+class BadSmellCrossPackage(BadSmell):
+    def __init__(self) -> None:
+        super().__init__(smell_cross_module, "此依赖关系跨模块，需进一步分析")
+
+
+class BadSmellCylicDependency(BadSmell):
+    def __init__(self) -> None:
+        super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
+
+
+def find_smells(module_dict: dict[str:dict[str:PKG]], dependency_smells, usage_smells):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
-                for d in [d for d in c.dependencies if d.category == 'Production']:
+                for d in [d for d in c.dependencies if d.is_production]:
                     for smell in dependency_smells:
                         if smell(c, d):
                             d.bad_smells.append(smell)
-                for u in [u for u in c.usages if u.category == 'Production']:
+                for u in [u for u in c.usages if u.is_production]:
                     for smell in usage_smells:
                         if smell(u, c):
                             u.bad_smells.append(smell)

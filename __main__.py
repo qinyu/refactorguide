@@ -1,18 +1,16 @@
 
 
 import os
-from formatters import class_description
-from xml.etree.ElementTree import fromstring
-from markdown_write import console_markdown
-from smells import find_smells
-from parsers import parse_idea
-from config import logic_pacakges
-
 import argparse
 import time
 
+from config import logic_pacakges, dependency_smells, usage_smells
+
+from parsers import parse_idea
+from smells import find_smells
 from markdown_write import console_markdown
 from uml_write import console_plant_uml
+
 
 outputs = {
     "md": console_markdown,
@@ -44,7 +42,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "-p", "--parser",
         nargs=1,
         default="idea",
-        choices=["idea"],
+        choices=parsers.keys(),
         help="输入文件格式，默认是IDEA的依赖文件格式"
     )
     # parser.add_argument('input', nargs=1, help="依赖关系文件")
@@ -57,7 +55,7 @@ def main() -> None:
     module_dict = parsers[args.parser]("fast_hub_deps.xml", logic_pacakges)
     # module_dict = filter_interested_packages(module_dict, logic_pacakges)
 
-    find_smells(module_dict)
+    find_smells(module_dict, dependency_smells, usage_smells)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for o in args.outputs:

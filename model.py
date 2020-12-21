@@ -132,7 +132,7 @@ class CLS(BASE):
     def __hash__(self):
         return hash(self.path)
 
-    def oneline_str(self, template="{full_name}"):
+    def oneline_str(self, template):
         return template.format(**self.all_attributes)
 
     @property
@@ -175,7 +175,7 @@ class DEP(CLS):
     def __hash__(self):
         return hash(self.path)
 
-    def oneline_str(self, template="{full_name}"):
+    def oneline_str(self, template):
         _str = super().oneline_str(template)
         if len(self.bad_smells) > 0:
             _str += " (" + "; ".join(
@@ -218,7 +218,7 @@ class PKG(BASE):
     def full_name(self):
         return self.name
 
-    def oneline_str(self, template="{full_name}"):
+    def oneline_str(self, template):
         return template.format(**self.all_attributes)
 
     @property
@@ -257,7 +257,7 @@ class MOD(BASE):
         self._packages = sorted(packages, key=attrgetter("name"))
 
 
-def grouped_by_modules_and_logic_packages(classes):
+def grouped_by_modules_and_logic_packages(classes: list[CLS]) -> dict[str:dict[str:CLS]]:
     module_dict = {}
     sorted_classes = sorted(classes, key=sorter)
     for m, m_cls_list in groupby(sorted_classes, key=attrgetter("module")):
@@ -267,57 +267,3 @@ def grouped_by_modules_and_logic_packages(classes):
 
         module_dict[m] = package_dict
     return module_dict
-
-
-def deps_format(dependencies: list[DEP], oneline_format, join_str, end_str):
-    d_onelines = [d.oneline_str(oneline_format) for d in dependencies]
-    return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
-
-
-def grouped_info(module_dict, oneline_format="{full_name}"):
-    _str = ""
-
-    for m, pkgs in module_dict.items():
-        _str += m + "  "
-        keys = list(pkgs.keys())
-        for p in keys[:-1]:
-            _str += "\n├──" + p + "  "
-            _str += deps_format(pkgs[p], oneline_format,
-                                join_str="\n│   ├──", end_str="\n│   └──")
-        _str += "\n└──" + keys[-1] + "  "
-        _str += deps_format(pkgs[keys[-1]], oneline_format,
-                            join_str="\n    ├──", end_str="\n    └──")
-        _str += "\n"
-    return _str
-
-
-def grouped_dependenies_of(class_or_package: BASE, suspicious_only=False):
-    module_dict = class_or_package.grouped_suspicious_dependencies if suspicious_only else class_or_package.grouped_dependencies
-    return grouped_info(module_dict)
-
-
-def grouped_usages_of(class_or_package, suspicious_only=False):
-    module_dict = class_or_package.grouped_suspicious_usages if suspicious_only else class_or_package.grouped_usages
-    return grouped_info(module_dict)
-
-
-# def print_class_with_dependencies(cls, suspicious_only=False):
-#     deps_str = grouped_dependenies_of(cls, suspicious_only)
-#     usages_str = grouped_usages_of(cls, suspicious_only)
-#     deps_stats_str = s_format.format(
-#         *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
-#     usages_stats_str = s_format.format(
-#         *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
-#     print(c_format.format("-"*80,
-#                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
-
-
-# def print_package_with_dependencies(cls, suspicious_only=False):
-#     deps_str = grouped_dependenies_of(cls, suspicious_only)
-#     usages_str = grouped_usages_of(cls, suspicious_only)
-#     deps_stats_str = s_format.format(
-#         *(cls.suspicious_depedencies_statistics if suspicious_only else cls.depedencies_statistics))
-#     usages_stats_str = s_format.format(
-#         *(cls.suspicious_usages_statistics if suspicious_only else cls.usages_statistics))
-#     print(p_format.format("-"*80,
-#                           deps_stats_str, deps_str, usages_stats_str, usages_str, **cls.__dict__))
