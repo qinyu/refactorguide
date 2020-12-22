@@ -10,11 +10,11 @@ class BASE(object):
 
     @property
     def suspicious_dependencies(self):
-        return [d for d in self.dependencies if len(d.bad_smells) > 0]
+        return [d for d in self.dependencies if d.has_smell]
 
     @property
     def suspicious_usages(self):
-        return [u for u in self.usages if len(u.bad_smells) > 0]
+        return [u for u in self.usages if u.has_smell]
 
     @property
     def depedencies_statistics(self):
@@ -80,7 +80,7 @@ class CLS(BASE):
     -------
     """
 
-    def __init__(self, path, name, raw_package, module, category="Production", package=None,  dependencies=[]):
+    def __init__(self, path, name, raw_package, module, category="Production", package=None, dependencies=[]):
         self.category = category
         self.path = path
         self.name = name
@@ -118,6 +118,13 @@ class CLS(BASE):
     def is_production(self):
         return self.category == "Production"
 
+    def oneline_str(self, template):
+        return template.format(**self.all_attributes)
+
+    @property
+    def all_attributes(self):
+        return dict(vars(self), full_name=self.full_name)
+
     def __str__(self):
         return str(self.__dict__)
 
@@ -131,13 +138,6 @@ class CLS(BASE):
 
     def __hash__(self):
         return hash(self.path)
-
-    def oneline_str(self, template):
-        return template.format(**self.all_attributes)
-
-    @property
-    def all_attributes(self):
-        return dict(vars(self), full_name=self.full_name)
 
 
 class DEP(CLS):
@@ -176,10 +176,14 @@ class DEP(CLS):
 
     def oneline_str(self, template):
         _str = super().oneline_str(template)
-        if len(self.bad_smells) > 0:
+        if self.has_smell:
             _str += " (" + "; ".join(
                 [bs.description for bs in self.bad_smells]) + ")  "
         return _str
+
+    @property
+    def has_smell(self):
+        return len(self.bad_smells) > 0
 
 
 class PKG(BASE):
@@ -257,6 +261,8 @@ class MOD(BASE):
 
 
 def grouped_by_modules_and_packages(classes: list[CLS]) -> dict[str:dict[str:CLS]]:
+    """
+    """
     module_dict = {}
     sorted_classes = sorted(classes, key=sorter)
     for m, m_cls_list in groupby(sorted_classes, key=attrgetter("module")):
@@ -266,3 +272,38 @@ def grouped_by_modules_and_packages(classes: list[CLS]) -> dict[str:dict[str:CLS
 
         module_dict[m] = package_dict
     return module_dict
+
+
+def update_class_logic_packages(class_list: list[CLS], logic_pacakges: dict[str:list[str]]):
+    """
+    Update class' own packge and all its depenedencies' packages and usages' packages
+
+    >>> cls = CLS(path="", name="View", raw_package="info.qinyu.biz.ui", module="test")
+    >>> cls.dependencies = [DEP(path="", name="Model", raw_package="info.qinyu.biz.model", module="test", category="Production")]
+    >>> cls.usages = [DEP(path="", name="App", raw_package="info.qinyu", module="test", category="Production"), DEP(path="", name="Page", raw_package="info.qinyu.biz.ui", module="test", category="Production")]
+    >>> update_class_logic_packages([cls], {'test':  ['info.qinyu.biz']})
+    >>> print(cls.package)
+    info.qinyu.biz
+    >>> print(cls.dependencies[0].package)
+    info.qinyu.biz
+    >>> print(cls.usages[0].package)
+    info.qinyu
+    >>> print(cls.usages[1].package)
+    info.qinyu.biz
+    """
+    def update(cls):
+        for logic_package in logic_pacakges.get(cls.module, []):
+            if cls.package.startswith(logic_package):
+                cls.package = logic_package
+                break
+        return cls
+
+    for cls in class_list:
+        update(cls)
+        cls.dependencies = [update(d) for d in cls.dependencies]
+        cls.usages = [update(u) for u in cls.usages]
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

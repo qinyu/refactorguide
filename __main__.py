@@ -6,7 +6,7 @@ import time
 
 from config import logic_pacakges, dependency_smells, usage_smells
 
-from parsers import parse_idea
+from read_idea import parse_idea
 from smells import find_smells
 from filters import filter_interested_packages
 

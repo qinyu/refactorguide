@@ -1,4 +1,4 @@
-from model import CLS, DEP, PKG, grouped_by_modules_and_packages
+from model import CLS, DEP, PKG, grouped_by_modules_and_packages, update_class_logic_packages
 import re
 import xml.etree.ElementTree as ET
 
@@ -61,20 +61,6 @@ def parse_idea_dependencies(file_node):
     dependencies = [parse_idea_dependency(d)
                     for d in file_node.findall("dependency")]
     return [d for d in dependencies if d]
-
-
-def update_class_logic_packages(class_list, logic_pacakges):
-    def update(c):
-        for logic_package in logic_pacakges.get(c.module, []):
-            if c.package.startswith(logic_package):
-                c.package = logic_package
-                break
-        return c
-
-    for c in class_list:
-        update(c)
-        c.dependencies = [update(d) for d in c.dependencies]
-        c.usages = [update(u) for u in c.usages]
 
 
 def update_idea_class_usages(class_list):
