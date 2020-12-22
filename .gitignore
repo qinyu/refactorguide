@@ -134,3 +134,4 @@ report-*/
 temp/
 
 .DS_Store
+*.ini

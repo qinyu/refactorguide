@@ -14,6 +14,10 @@ class BadSmell(object):
     def __str__(self):
         return self.description
 
+    @property
+    def all_args(self):
+        return None
+
 
 class ShouldNotDepend(BadSmell):
     def __init__(self, from_dict, to_dict):
@@ -32,6 +36,12 @@ class ShouldNotDepend(BadSmell):
             "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
         )
         super().__init__(check, description)
+        self.from_dict = from_dict
+        self.to_dict = to_dict
+
+    @property
+    def all_args(self):
+        return {"from": self.from_dict, "to": self.to_dict}
 
 
 def smell_cross_module(
@@ -61,7 +71,7 @@ class BadSmellCylicDependency(BadSmell):
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 
 
-def find_smells(module_dict: dict[str:dict[str:Package]], dependency_smells, usage_smells):
+def find_smells(module_dict: dict[str:dict[str:Package]], dependency_smells):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
@@ -70,6 +80,6 @@ def find_smells(module_dict: dict[str:dict[str:Package]], dependency_smells, usa
                         if smell(c, d):
                             d.bad_smells.append(smell)
                 for u in [u for u in c.usages if u.is_production]:
-                    for smell in usage_smells:
+                    for smell in dependency_smells:
                         if smell(u, c):
                             u.bad_smells.append(smell)

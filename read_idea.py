@@ -52,8 +52,8 @@ def parse_idea_dependency(dependency_node):
                           covnvert_class_match_dict(match.groupdict()))
                 break
 
-    if not dep:
-        print("Warning: dependency missed %s" % _path)
+    # if not dep:
+    #     print("Warning: dependency missed %s" % _path)
     return dep
 
 

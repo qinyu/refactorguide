@@ -1,13 +1,14 @@
 
 
+from json import encoder
+from config import read_bad_smells, read_layers, read_logic_pacakges, write_example_config
+import configparser
 import os
 import argparse
 import time
 
-from config import logic_pacakges, dependency_smells, usage_smells
-
 from read_idea import parse_idea
-from smells import find_smells
+from smells import BadSmellCrossModule, BadSmellCrossPackage, BadSmellCylicDependency, find_smells
 from filters import filter_interested_packages
 
 from markdown_write import console_markdown
@@ -26,7 +27,7 @@ parsers = {
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        usage="%(prog)s [INPUT] [CONFIG]",
+        usage="%(prog)s",
         description="代码分析"
     )
     parser.add_argument(
@@ -47,18 +48,39 @@ def init_argparse() -> argparse.ArgumentParser:
         choices=parsers.keys(),
         help="输入文件格式，默认是IDEA的依赖文件格式"
     )
-    # parser.add_argument('input', nargs=1, help="依赖关系文件")
-    # parser.add_argument('config', nargs=1, help="配置文件")
+    parser.add_argument('--input', nargs=1, help="依赖关系文件",
+                        default="example_deps.xml")
+    parser.add_argument('--config', nargs=1, help="配置文件", default="config.ini")
     return parser
 
 
 def main() -> None:
     args = init_argparse().parse_args()
-    module_dict = parsers[args.parser](
-        "fast_hub_deps.xml", logic_pacakges)
+
+    logic_pacakges = {}
+    layers = {}
+    bad_smells = [BadSmellCrossModule(),
+                  BadSmellCrossPackage(),
+                  BadSmellCylicDependency()]
+
+    cp = configparser.ConfigParser(allow_no_value=True)
+    cp.optionxform = str
+
+    if os.path.exists(args.config):
+        with open(args.config, 'r') as f:
+            cp.read_string(f.read())
+        logic_pacakges = read_logic_pacakges(cp)
+        layers = read_layers(cp)
+        _config_bad_smells = read_bad_smells(cp)
+        if len(_config_bad_smells) > 0:
+            bad_smells = _config_bad_smells
+    else:
+        write_example_config(cp, args.config)
+
+    module_dict = parsers[args.parser](args.input, logic_pacakges)
     # module_dict = filter_interested_packages(module_dict, logic_pacakges)
 
-    find_smells(module_dict, dependency_smells, usage_smells)
+    find_smells(module_dict, bad_smells)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for o in args.outputs:
