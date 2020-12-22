@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from model import CLS, PKG
+from model import Class, Package
 
 
 class BadSmell(object):
@@ -35,7 +35,7 @@ class ShouldNotDepend(BadSmell):
 
 
 def smell_cross_module(
-    cls: CLS, dep: CLS) -> bool: return dep.is_production and cls.module != dep.module
+    cls: Class, dep: Class) -> bool: return dep.is_production and cls.module != dep.module
 
 
 def smell_cross_package(
@@ -43,7 +43,7 @@ def smell_cross_package(
 
 
 def smell_cylic_dependency(
-    cls, dep): return dep.is_production and cls.path in [u.path for u in cls.usages]
+    cls, dep): return dep.is_production and dep.path in [u.path for u in cls.usages]
 
 
 class BadSmellCrossModule(BadSmell):
@@ -53,7 +53,7 @@ class BadSmellCrossModule(BadSmell):
 
 class BadSmellCrossPackage(BadSmell):
     def __init__(self) -> None:
-        super().__init__(smell_cross_module, "此依赖关系跨模块，需进一步分析")
+        super().__init__(smell_cross_package, "此依赖关系跨包，需进一步分析")
 
 
 class BadSmellCylicDependency(BadSmell):
@@ -61,7 +61,7 @@ class BadSmellCylicDependency(BadSmell):
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 
 
-def find_smells(module_dict: dict[str:dict[str:PKG]], dependency_smells, usage_smells):
+def find_smells(module_dict: dict[str:dict[str:Package]], dependency_smells, usage_smells):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:

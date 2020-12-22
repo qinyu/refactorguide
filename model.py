@@ -1,19 +1,19 @@
 # coding=utf-8
 
 from itertools import groupby
-from operator import attrgetter
+from operator import attrgetter, lshift
 
 sorter = attrgetter('module', 'package', 'raw_package', 'name')
 
 
-class BASE(object):
+class Component(object):
 
     @property
-    def suspicious_dependencies(self):
+    def smell_dependencies(self):
         return [d for d in self.dependencies if d.has_smell]
 
     @property
-    def suspicious_usages(self):
+    def smell_usages(self):
         return [u for u in self.usages if u.has_smell]
 
     @property
@@ -29,35 +29,23 @@ class BASE(object):
             len(self.usages)
 
     @property
-    def suspicious_depedencies_statistics(self):
-        return len(set([d.module for d in self.suspicious_dependencies])),\
-            len(set([d.package for d in self.suspicious_dependencies])),\
-            len(self.suspicious_dependencies)
-
-    @property
-    def suspicious_usages_statistics(self):
-        return len(set([u.module for u in self.suspicious_usages])),\
-            len(set([u.package for u in self.suspicious_usages])),\
-            len(self.suspicious_usages)
-
-    @property
     def grouped_dependencies(self):
         return grouped_by_modules_and_packages(self.dependencies)
 
     @property
-    def grouped_suspicious_dependencies(self):
-        return grouped_by_modules_and_packages(self.suspicious_dependencies)
+    def grouped_smell_dependencies(self):
+        return grouped_by_modules_and_packages(self.smell_dependencies)
 
     @property
     def grouped_usages(self):
         return grouped_by_modules_and_packages(self.usages)
 
     @property
-    def grouped_suspicious_usages(self):
-        return grouped_by_modules_and_packages(self.suspicious_usages)
+    def grouped_smell_usages(self):
+        return grouped_by_modules_and_packages(self.smell_usages)
 
 
-class CLS(BASE):
+class Class(Component):
     """
     A Java class with all dependencies.
 
@@ -129,7 +117,7 @@ class CLS(BASE):
         return str(self.__dict__)
 
     def __eq__(self, other):
-        if isinstance(other, CLS):
+        if isinstance(other, Class):
             return self.path == other.path
         return False
 
@@ -140,7 +128,7 @@ class CLS(BASE):
         return hash(self.path)
 
 
-class DEP(CLS):
+class Dependency(Class):
     """
     A dependency used by some class.
 
@@ -154,7 +142,8 @@ class DEP(CLS):
     """
 
     def __init__(self, path, name, raw_package, module, category, package=None):
-        CLS.__init__(self, path, name, raw_package, module, category, package)
+        Class.__init__(self, path, name, raw_package,
+                       module, category, package)
         self.bad_smells = []
 
     def __str__(self):
@@ -164,7 +153,7 @@ class DEP(CLS):
 
     def __eq__(self, other):
         """Overrides the default implementation"""
-        if isinstance(other, DEP):
+        if isinstance(other, Dependency):
             return self.path == other.path
         return False
 
@@ -186,7 +175,7 @@ class DEP(CLS):
         return len(self.bad_smells) > 0
 
 
-class PKG(BASE):
+class Package(Component):
 
     def __init__(self, module, name, classes):
         self.classes = classes
@@ -198,19 +187,19 @@ class PKG(BASE):
         return sorted(set([d for c in self.classes for d in c.dependencies]), key=sorter)
 
     @property
-    def suspicious_dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.suspicious_dependencies]), key=sorter)
+    def smell_dependencies(self):
+        return sorted(set([d for c in self.classes for d in c.smell_dependencies]), key=sorter)
 
     @property
     def usages(self):
         return sorted(set([u for c in self.classes for u in c.usages]), key=sorter)
 
     @property
-    def suspicious_usages(self):
-        return sorted(set([u for c in self.classes for u in c.suspicious_usages]), key=sorter)
+    def smell_usages(self):
+        return sorted(set([u for c in self.classes for u in c.smell_usages]), key=sorter)
 
     @property
-    def classes(self):
+    def classes(self) -> list[Class]:
         return self._classes
 
     @classes.setter
@@ -229,39 +218,58 @@ class PKG(BASE):
         return dict(vars(self), full_name=self.full_name)
 
 
-class MOD(BASE):
+class Module(Component):
 
-    def __init__(self, name, classes):
-        self.packages = classes
+    def __init__(self, name: str, packages: list[Package]):
+        self.packages = packages
         self.name = name
 
     @property
-    def dependencies(self):
-        return sorted(set([d for pkg in self.packages for d in pkg.dependencies]), key=sorter)
+    def classes(self) -> list[Class]:
+        return [c for p in self.packages for c in p.classes]
 
     @property
-    def suspicious_dependencies(self):
-        return sorted(set([d for pkg in self.packages for d in pkg.suspicious_dependencies]), key=sorter)
-
-    @property
-    def usages(self):
-        return sorted(set([u for pkg in self.packages for u in pkg.usages]), key=sorter)
-
-    @property
-    def suspicious_usages(self):
-        return sorted(set([u for pkg in self.packages for u in pkg.suspicious_usages]), key=sorter)
-
-    @property
-    def packages(self):
+    def packages(self) -> list[Package]:
         return self._packages
 
     @packages.setter
-    def packages(self, packages):
+    def packages(self, packages: list[Package]):
         self._packages = sorted(packages, key=attrgetter("name"))
 
 
-def grouped_by_modules_and_packages(classes: list[CLS]) -> dict[str:dict[str:CLS]]:
+def grouped_by_modules_and_packages(classes: list[Class]) -> dict[str:dict[str:Class]]:
     """
+    Group class by its attributes: 'module', 'pacakge'(not 'raw_package') and 'name', returns an embeded dict
+
+    >>> sort_by_module = grouped_by_modules_and_packages([Class(path="", name="View", raw_package="should.be.first", module="a"), Class(path="", name="View", raw_package="should.be.second", module="b")])
+    >>> print(sort_by_module.keys())
+    dict_keys(['a', 'b'])
+    >>> print(sort_by_module['a'].keys())
+    dict_keys(['should.be.first'])
+    >>> print(sort_by_module['b'].keys())
+    dict_keys(['should.be.second'])
+
+    >>> sort_by_package = grouped_by_modules_and_packages([Class(path="", name="View", raw_package="should.be.first", module="same.module"), Class(path="", name="View", raw_package="should.be.second", module="same.module")])
+    >>> print(sort_by_package.keys())
+    dict_keys(['same.module'])
+    >>> print(sort_by_package['same.module'].keys())
+    dict_keys(['should.be.first', 'should.be.second'])
+
+    >>> sort_by_raw_package = grouped_by_modules_and_packages([Class(path="", name="second", raw_package="same.package.b", module="same.module", package="same.package"), Class(path="", name="first", raw_package="same.package.a", module="same.module", package="same.package")])
+    >>> print(sort_by_raw_package.keys())
+    dict_keys(['same.module'])
+    >>> print(sort_by_raw_package['same.module'].keys())
+    dict_keys(['same.package'])
+    >>> print([c.name for c in sort_by_raw_package['same.module']['same.package']])
+    ['first', 'second']
+
+    >>> sort_by_class = grouped_by_modules_and_packages([Class(path="", name="second", raw_package="same.package", module="same.module"), Class(path="", name="first", raw_package="same.package", module="same.module")])
+    >>> print(sort_by_raw_package.keys())
+    dict_keys(['same.module'])
+    >>> print(sort_by_raw_package['same.module'].keys())
+    dict_keys(['same.package'])
+    >>> print([c.name for c in sort_by_raw_package['same.module']['same.package']])
+    ['first', 'second']
     """
     module_dict = {}
     sorted_classes = sorted(classes, key=sorter)
@@ -274,13 +282,25 @@ def grouped_by_modules_and_packages(classes: list[CLS]) -> dict[str:dict[str:CLS
     return module_dict
 
 
-def update_class_logic_packages(class_list: list[CLS], logic_pacakges: dict[str:list[str]]):
+def update_class_logic_packages(class_list: list[Class], logic_pacakges: dict[str:list[str]]):
     """
     Update class' own packge and all its depenedencies' packages and usages' packages
 
-    >>> cls = CLS(path="", name="View", raw_package="info.qinyu.biz.ui", module="test")
-    >>> cls.dependencies = [DEP(path="", name="Model", raw_package="info.qinyu.biz.model", module="test", category="Production")]
-    >>> cls.usages = [DEP(path="", name="App", raw_package="info.qinyu", module="test", category="Production"), DEP(path="", name="Page", raw_package="info.qinyu.biz.ui", module="test", category="Production")]
+    >>> cls = Class(path="", name="View", raw_package="info.qinyu.biz.ui", module="test")
+    >>> cls.dependencies = [Dependency(path="", name="Model", raw_package="info.qinyu.biz.model", module="test", category="Production")]
+    >>> cls.usages = [Dependency(path="", name="App", raw_package="info.qinyu", module="test", category="Production"), Dependency(path="", name="Page", raw_package="info.qinyu.biz.ui", module="test", category="Production")]
+
+    # Nothing get updated if empty
+    >>> update_class_logic_packages([cls], {})
+    >>> print(cls.package)
+    info.qinyu.biz.ui
+    >>> print(cls.dependencies[0].package)
+    info.qinyu.biz.model
+    >>> print(cls.usages[0].package)
+    info.qinyu
+    >>> print(cls.usages[1].package)
+    info.qinyu.biz.ui
+
     >>> update_class_logic_packages([cls], {'test':  ['info.qinyu.biz']})
     >>> print(cls.package)
     info.qinyu.biz

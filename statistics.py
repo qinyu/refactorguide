@@ -6,8 +6,8 @@ def console_statistics_data(module_dict):
     total_dependencies = 0
     total_usages = 0
 
-    total_suspicious_dependencies = 0
-    total_suspicious_usages = 0
+    total_smell_dependencies = 0
+    total_smell_usages = 0
 
     all_package_list = []
     all_classes_list = []
@@ -21,8 +21,8 @@ def console_statistics_data(module_dict):
             total_class += len(pkg.classes)
             total_dependencies += len(pkg.dependencies)
             total_usages += len(pkg.usages)
-            total_suspicious_dependencies += len(pkg.suspicious_dependencies)
-            total_suspicious_usages += len(pkg.suspicious_usages)
+            total_smell_dependencies += len(pkg.smell_dependencies)
+            total_smell_usages += len(pkg.smell_usages)
             for file in pkg.classes:
                 if(file not in all_classes_list):
                     all_classes_list.append(file)
@@ -35,7 +35,7 @@ def console_statistics_data(module_dict):
                             total_smell[s] += 1
     # 输出整体统计数据
     print(statistics_format.format(total_module, total_package, total_class,
-                                   total_dependencies, total_usages, total_suspicious_dependencies, total_suspicious_usages))
+                                   total_dependencies, total_usages, total_smell_dependencies, total_smell_usages))
     # 输出rule统计数据
     sort_list = sorted(total_smell.items(),
                        key=lambda kv: (kv[1], kv[0]), reverse=True)
@@ -48,42 +48,42 @@ def console_statistics_data(module_dict):
 def print_top_package(all_package_list):
     # 输出Top问题包
     sort_dep_list = sorted(all_package_list, key=lambda pkg: len(
-        pkg.suspicious_dependencies), reverse=True)
+        pkg.smell_dependencies), reverse=True)
 
     print("\n"+"依赖数量Top 10 包:")
     for i in range(0, 10):
         pkg = sort_dep_list[i]
         print(p_format.format(pkg.name, pkg.module,
-                              len(pkg.suspicious_dependencies)))
+                              len(pkg.smell_dependencies)))
 
     sort_usages_list = sorted(all_package_list, key=lambda pkg: len(
-        pkg.suspicious_usages), reverse=True)
+        pkg.smell_usages), reverse=True)
 
     print("\n"+"被引用数量Top 10 包:")
     for i in range(0, 10):
         pkg = sort_usages_list[i]
-        print(p_format.format(pkg.name, pkg.module, len(pkg.suspicious_usages)))
+        print(p_format.format(pkg.name, pkg.module, len(pkg.smell_usages)))
 
 
 def print_top_classes(all_classes_list):
     # 输出Top问题类
     sort_dep_classes_list = sorted(all_classes_list, key=lambda file: len(
-        file.suspicious_dependencies), reverse=True)
+        file.smell_dependencies), reverse=True)
 
     print("\n"+"依赖数量Top 10 类:")
     for i in range(0, 10):
         file = sort_dep_classes_list[i]
         print(c_format.format(file.name, file.raw_package,
-                              file.module, len(file.suspicious_dependencies)))
+                              file.module, len(file.smell_dependencies)))
 
     sort_usages_classes_list = sorted(
-        all_classes_list, key=lambda file: len(file.suspicious_usages), reverse=True)
+        all_classes_list, key=lambda file: len(file.smell_usages), reverse=True)
 
     print("\n"+"被引用数量Top 10 类:")
     for i in range(0, 10):
         file = sort_usages_classes_list[i]
         print(c_format.format(file.name, file.raw_package,
-                              file.module, len(file.suspicious_usages)))
+                              file.module, len(file.smell_usages)))
 
 
 statistics_format = '''

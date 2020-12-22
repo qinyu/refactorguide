@@ -1,4 +1,4 @@
-from model import CLS, DEP, PKG, grouped_by_modules_and_packages, update_class_logic_packages
+from model import Class, Dependency, Package, grouped_by_modules_and_packages, update_class_logic_packages
 import re
 import xml.etree.ElementTree as ET
 
@@ -35,7 +35,7 @@ def parse_idea_class(file_node):
     if match:
         dependencies = [parse_idea_dependency(d)
                         for d in file_node.findall("dependency")]
-        return CLS(dependencies=[d for d in dependencies if d], **covnvert_class_match_dict(match.groupdict()))
+        return Class(dependencies=[d for d in dependencies if d], **covnvert_class_match_dict(match.groupdict()))
     # print("Warning: class missed %s" % path)
     return None
 
@@ -48,7 +48,7 @@ def parse_idea_dependency(dependency_node):
         for cat, compiled_re in idea_category_dict.items():
             match = compiled_re.match(_path)
             if match:
-                dep = DEP(category=cat, **
+                dep = Dependency(category=cat, **
                           covnvert_class_match_dict(match.groupdict()))
                 break
 
@@ -73,7 +73,7 @@ def update_idea_class_usages(class_list):
                 usages = c.usages
                 for cat, compiled_re in idea_category_dict.items():
                     if compiled_re.match(c.path):
-                        usages.append(DEP(u.path, u.name, u.raw_package,
+                        usages.append(Dependency(u.path, u.name, u.raw_package,
                                           u.module, cat, u.package))
                         break
                 # 排序
@@ -90,6 +90,6 @@ def parse_idea(idea_dep_file_path, logic_pacakges):
     module_dict = grouped_by_modules_and_packages(all_classes)
     for m, package_dict in module_dict.items():
         for p, p_cls_list in package_dict.items():
-            package_dict[p] = PKG(m, p, p_cls_list)
+            package_dict[p] = Package(m, p, p_cls_list)
 
     return module_dict

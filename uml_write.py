@@ -16,8 +16,8 @@ def console_plant_uml(report_dir, module_dict):
             group_classes = []
             group_dict = {}
             for file in pkg.classes:
-                group_classes += file.suspicious_dependencies
-                group_classes += file.suspicious_usages
+                group_classes += file.smell_dependencies
+                group_classes += file.smell_usages
             # build plantuml head
             group_dict = grouped_by_modules_and_packages(
                 pkg.classes+group_classes)
@@ -27,8 +27,8 @@ def console_plant_uml(report_dir, module_dict):
             for file in pkg.classes:
                 # build plantuml relation
                 uml += get_plant_relation(file,
-                                          file.suspicious_dependencies, False)
-                uml += get_plant_relation(file, file.suspicious_usages, True)
+                                          file.smell_dependencies, False)
+                uml += get_plant_relation(file, file.smell_usages, True)
             uml += "\n@enduml"
             export_to_file(report_dir+"/" + m + "/"+p+"/", p+".puml", uml)
         print("end print "+m+"to uml")
