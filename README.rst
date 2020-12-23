@@ -19,8 +19,6 @@ Refactor Guide
      :alt: Updates
 
 
-// TODO
-
 * Free software: MIT license
 * Documentation: https://refactor-guide.readthedocs.io.
 
