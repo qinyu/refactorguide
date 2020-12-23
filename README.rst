@@ -11,8 +11,8 @@ Refactor Guide
         :target: https://github.com/qinyu/refactorguide/actions
 
 
-.. image:: https://readthedocs.org/projects/refactor-guide/badge/?version=latest
-        :target: https://refactor-guide.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/refactorguide/badge/?version=latest
+        :target: https://refactorguide.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
 
@@ -22,7 +22,7 @@ Refactor Guide
 
 
 * Free software: MIT license
-* Documentation: https://refactor-guide.readthedocs.io.
+* Documentation: https://refactorguide.readthedocs.io.
 
 
 Features
