@@ -1,9 +1,8 @@
 
 # coding=utf-8
-import time
-import os
-from utils import export_to_file
-from model import grouped_by_modules_and_packages
+
+from refactorguide.utils import export_to_file
+from refactorguide.model import grouped_by_modules_and_packages
 
 
 def console_plant_uml(report_dir, module_dict):

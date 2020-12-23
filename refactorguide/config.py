@@ -2,9 +2,11 @@
 from configparser import ConfigParser as CP
 import io
 import json
-from smells import Smell, SmellDependency, SmellDependencyCrossModule, \
+from refactorguide.smells import Smell, SmellDependency, SmellDependencyCrossModule, \
     SmellDependencyCrossPackage, SmellCylicDependency
 from itertools import groupby
+
+from typing import List, Dict
 
 
 exmaple_layers = {
@@ -44,7 +46,7 @@ example_bad_smells = [
 ]
 
 
-def read_logic_pacakges(cp: CP) -> dict[str:list[str]]:
+def read_logic_pacakges(cp: CP) -> Dict[str, List[str]]:
     """
     >>> sample_config = '''
     ... [logic packages]
@@ -69,7 +71,7 @@ def read_logic_pacakges(cp: CP) -> dict[str:list[str]]:
     return logic_pacakges
 
 
-def write_logic_packages(cp: CP, logic_pacakges: dict[str:list[str]] = example_logic_pacakges):
+def write_logic_packages(cp: CP, logic_pacakges: Dict[str, List[str]] = example_logic_pacakges):
     _section = "logic pacakges"
     cp.add_section(_section)
     cp.set(_section,
@@ -79,7 +81,7 @@ def write_logic_packages(cp: CP, logic_pacakges: dict[str:list[str]] = example_l
         cp.set(_section, module, json.dumps(packages, indent=2))
 
 
-def read_bad_smells(cp: CP) -> list[Smell]:
+def read_bad_smells(cp: CP) -> List[Smell]:
     """
     >>> sample_config = '''
     ... [bad smells]
@@ -100,7 +102,7 @@ def read_bad_smells(cp: CP) -> list[Smell]:
     >>> print([type(s).__name__ for s in bad_smells])
     ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency', 'SmellDependency']
     """
-    module = __import__("smells")
+    module = __import__("refactorguide.smells")
     bad_smells = []
     if cp.has_section('bad smells'):
         for smell_name, params_json in cp.items('bad smells'):
@@ -114,7 +116,7 @@ def read_bad_smells(cp: CP) -> list[Smell]:
     return bad_smells
 
 
-def write_bad_smells(cp: CP, bad_smells: list[Smell] = example_bad_smells):
+def write_bad_smells(cp: CP, bad_smells: List[Smell] = example_bad_smells):
     def sorter(bs): return type(bs).__name__
     cp.add_section("bad smells")
     cp.set(
@@ -125,7 +127,7 @@ def write_bad_smells(cp: CP, bad_smells: list[Smell] = example_bad_smells):
             args_list, indent=2) if len(args_list) > 0 else None)
 
 
-def read_layers(cp: CP) -> dict[str: list[dict[str:str]]]:
+def read_layers(cp: CP) -> Dict[str, List[Dict[str, str]]]:
     """
     >>> sample_config = '''
     ... [layers]
@@ -147,7 +149,7 @@ def read_layers(cp: CP) -> dict[str: list[dict[str:str]]]:
     return layers
 
 
-def write_layers(cp: CP, layers: dict[str: list[dict[str:str]]] = exmaple_layers):
+def write_layers(cp: CP, layers: Dict[str, List[Dict[str, str]]] = exmaple_layers):
     cp.add_section("layers")
     cp.set("layers", "; Desired layers")
     for k, v in layers.items():

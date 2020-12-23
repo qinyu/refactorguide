@@ -1,4 +1,5 @@
-from model import Class, Dependency, Package, grouped_by_modules_and_packages, update_class_logic_packages
+from refactorguide.model import Class, Dependency, Package, grouped_by_modules_and_packages, \
+    update_class_logic_packages
 import re
 import xml.etree.ElementTree as ET
 

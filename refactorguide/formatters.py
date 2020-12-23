@@ -1,6 +1,7 @@
 # coding=utf-8
 
-from model import Class, Package
+from typing import Dict, List
+from refactorguide.model import Class, Package
 
 
 pd_format = """
@@ -9,10 +10,10 @@ pd_format = """
 一共有依赖 {} 项，坏味道依赖 {} 项
 一共有调用 {} 处，坏味道调用 {} 处
 --------------------------------------------------------------------------------
-坏味道依赖最多的{}个类，共计{}个坏味道（占比{}），它们是：  
+坏味道依赖最多的{}个类，共计{}个坏味道（占比{}），它们是：
 {}
 --------------------------------------------------------------------------------
-坏味道调用最多的{}个类，共计{}个坏味道（占比{}），它们是：  
+坏味道调用最多的{}个类，共计{}个坏味道（占比{}），它们是：
 {}
 --------------------------------------------------------------------------------
 """
@@ -79,12 +80,12 @@ def class_description(cls: Class) -> str:
     )
 
 
-def deps_format(dependencies: list[Class], oneline_format: str, join_str: str, end_str: str) -> str:
+def deps_format(dependencies: List[Class], oneline_format: str, join_str: str, end_str: str) -> str:
     d_onelines = [d.oneline_str(oneline_format) for d in dependencies]
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
-def dependencies_tree_description(module_dict: dict[str:dict[str:Class]], oneline_format="{full_name}") -> str:
+def dependencies_tree_description(module_dict: Dict[str, Dict[str, Class]], oneline_format="{full_name}") -> str:
     _str = ""
 
     for m, pkgs in module_dict.items():
@@ -99,7 +100,3 @@ def dependencies_tree_description(module_dict: dict[str:dict[str:Class]], onelin
                             join_str="\n    ├──", end_str="\n    └──")
         _str += "\n"
     return _str
-
-
-if __name__ == "__main__":
-    print([][:3])

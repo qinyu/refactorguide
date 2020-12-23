@@ -1,6 +1,7 @@
 # coding=utf-8
 
-from model import Class, Package
+from typing import Dict
+from refactorguide.model import Class, Package
 
 
 class Smell(object):
@@ -73,7 +74,7 @@ class SmellCylicDependency(Smell):
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 
 
-def find_smells(module_dict: dict[str:dict[str:Package]], dependency_smells):
+def find_smells(module_dict: Dict[str, Dict[str, Package]], dependency_smells):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             for c in pkg.classes:
