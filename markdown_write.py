@@ -22,7 +22,8 @@ def console_markdown(report_dir, module_dict: dict[str: dict[str:Package]]):
     for m, pkg_dict in module_dict.items():
         for p, pkg in pkg_dict.items():
             export_to_file(os.path.join(report_dir, m, p), "_pacakge_.md",
-                           package_description(pkg, oneline_format=oneline_md_format) + smells_markdown_depscription(pkg))
+                           package_description(pkg,
+                                               oneline_format=oneline_md_format) + smells_markdown_depscription(pkg))
             for cls in pkg.classes:
                 export_to_file(os.path.join(report_dir, m, p),  cls.full_name +
                                ".md", class_description(cls) + smells_markdown_depscription(cls))

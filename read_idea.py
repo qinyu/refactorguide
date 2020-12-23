@@ -4,15 +4,30 @@ import xml.etree.ElementTree as ET
 
 idea_category_dict = {
     "Production": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/]src[/])(.*(kotlin|java))[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>^[$]PROJECT_DIR[$][/]"
+        r"(?P<module>.*)([/]src[/])(.*(kotlin|java))[/]"
+        r"(?P<raw_package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "Android": re.compile(
-        r"(?P<path>.*[/]sdk[/].*[/](?P<module>android-[^\/]*)([/].*\.jar[!])*[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>.*[/]sdk[/].*[/]"
+        r"(?P<module>android-[^\/]*)([/].*\.jar[!])*[/]"
+        r"(?P<raw_package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "ThirdParty": re.compile(
-        r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/](?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/]"
+        r"(?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/]"
+        r"(?P<raw_package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "LocalJar": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)"),
+        r"(?P<path>^[$]PROJECT_DIR[$][/]"
+        r"(?P<module>.*)([/][^\/]*\.jar[!])[/]"
+        r"(?P<raw_package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "JDK": re.compile(
-        r"(?P<path>^[$]PROJECT_DIR[$][/](?P<module>.*)([/][^\/]*\.jar[!])[/](?P<raw_package>.*)[/](?P<name>.*)[.].*$)")
+        r"(?P<path>^[$]PROJECT_DIR[$][/]"
+        r"(?P<module>.*)([/][^\/]*\.jar[!])[/]"
+        r"(?P<raw_package>.*)[/]"
+        r"(?P<name>.*)[.].*$)")
 }
 
 
@@ -48,8 +63,8 @@ def parse_idea_dependency(dependency_node):
         for cat, compiled_re in idea_category_dict.items():
             match = compiled_re.match(_path)
             if match:
-                dep = Dependency(category=cat, **
-                          covnvert_class_match_dict(match.groupdict()))
+                dep = Dependency(
+                    category=cat, **covnvert_class_match_dict(match.groupdict()))
                 break
 
     # if not dep:
@@ -74,15 +89,15 @@ def update_idea_class_usages(class_list):
                 for cat, compiled_re in idea_category_dict.items():
                     if compiled_re.match(c.path):
                         usages.append(Dependency(u.path, u.name, u.raw_package,
-                                          u.module, cat, u.package))
+                                                 u.module, cat, u.package))
                         break
                 # 排序
                 c.usages = usages
 
 
 def parse_idea(idea_dep_file_path, logic_pacakges):
-    all_classes = [parse_idea_class(f) for f in ET.parse(
-        idea_dep_file_path).getroot().findall("file")]
+    all_files = ET.parse(idea_dep_file_path).getroot().findall("file")
+    all_classes = [parse_idea_class(f) for f in all_files]
     all_classes = [c for c in all_classes if c]
     update_class_logic_packages(all_classes, logic_pacakges)
     update_idea_class_usages(all_classes)

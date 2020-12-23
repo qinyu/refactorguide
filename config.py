@@ -1,14 +1,15 @@
 # coding = utf-8s
-import configparser
+from configparser import ConfigParser as CP
 import io
 import json
-from smells import BadSmell, ShouldNotDepend, BadSmellCrossModule, BadSmellCrossPackage, BadSmellCylicDependency
+from smells import Smell, SmellDependency, SmellDependencyCrossModule, \
+    SmellDependencyCrossPackage, SmellCylicDependency
 from itertools import groupby
 
 
 exmaple_layers = {
     "application": [],
-    "business": [{"module": "In_this_module", "package": "and.in.this.packqge",
+    "business": [{"module": "In_this_module", "package": "in.this.packqge",
                   "name": "OnlyThisClassBelongsToBusinessLayer"}],
     "service":  [
         {"module": "Whole_module_belongs_to_service_layer"}
@@ -25,42 +26,42 @@ example_logic_pacakges = {
 }
 
 example_bad_smells = [
-    BadSmellCrossModule(),
-    BadSmellCrossPackage(),
-    BadSmellCylicDependency(),
-    ShouldNotDepend(
-        {'module': 'OneModule'},
-        {'module': 'AnotherModule'}
-    ),
-    ShouldNotDepend(
-        {'module': 'OneModule'},
-        {'package': 'one.package', 'module': 'InAnotherModule'}
-    ),
-    ShouldNotDepend(
-        {'module': 'OneModule'},
-        {'name': 'OneClass', 'package': 'in.one.package', 'module': 'InAnotherModule'}
-    )
+    SmellDependencyCrossModule(),
+    SmellDependencyCrossPackage(),
+    SmellCylicDependency(),
+    SmellDependency(**{
+        'from': {'module': 'OneModule'},
+        'to': {'module': 'AnotherModule'}
+    }),
+    SmellDependency(**{
+        'from': {'module': 'OneModule'},
+        'to': {'package': 'one.package', 'module': 'InAnotherModule'}
+    }),
+    SmellDependency(**{
+        'from': {'module': 'OneModule'},
+        'to': {'name': 'OneClass', 'package': 'in.one.package', 'module': 'InAnsotherModule'}
+    })
 ]
 
 
-def read_logic_pacakges(config: configparser.ConfigParser) -> dict[str:list[str]]:
+def read_logic_pacakges(cp: CP) -> dict[str:list[str]]:
     """
     >>> sample_config = '''
     ... [logic packages]
-    ...   app: ["com.prettifier.pretty.helper",
-    ...     "com.fastaccess.data.dao.converters"]
-    ...   Test: ["com.prettifier.pretty.helper.test"]
+    ...   app: ["com.pretty.helper",
+    ...     "com.data.dao.converters"]
+    ...   Test: ["com.pretty.helper.test"]
     ... '''
-    >>> config = configparser.ConfigParser(allow_no_value=True)
-    >>> config.optionxform = str
-    >>> config.read_string(sample_config)
-    >>> logic_packages = read_logic_pacakges(config)
+    >>> cp = CP(allow_no_value=True)
+    >>> cp.optionxform = str
+    >>> cp.read_string(sample_config)
+    >>> logic_packages = read_logic_pacakges(cp)
     >>> print(logic_packages)
-    {'app': ['com.prettifier.pretty.helper', 'com.fastaccess.data.dao.converters'], 'Test': ['com.prettifier.pretty.helper.test']}
+    {'app': ['com.pretty.helper', 'com.data.dao.converters'], 'Test': ['com.pretty.helper.test']}
     """
     logic_pacakges = {}
-    if config.has_section('logic packages'):
-        for m, packages_json in config.items('logic packages'):
+    if cp.has_section('logic packages'):
+        for m, packages_json in cp.items('logic packages'):
             if packages_json:
                 logic_pacakges[m] = json.loads(packages_json)
             else:
@@ -68,106 +69,102 @@ def read_logic_pacakges(config: configparser.ConfigParser) -> dict[str:list[str]
     return logic_pacakges
 
 
-def write_logic_packages(config: configparser.ConfigParser, logic_pacakges: dict[str:list[str]] = example_logic_pacakges):
-    config.add_section("logic pacakges")
-    config.set(
-        "logic pacakges", "; Uncomment following exmaple and replace with your cohesive packages in each module. ")
+def write_logic_packages(cp: CP, logic_pacakges: dict[str:list[str]] = example_logic_pacakges):
+    _section = "logic pacakges"
+    cp.add_section(_section)
+    cp.set(_section,
+           "; Uncomment following exmaple and replace with your cohesive packages in each module. ")
 
-    for m, packages in logic_pacakges.items():
-        config.set("logic pacakges", m, json.dumps(packages, indent=2))
+    for module, packages in logic_pacakges.items():
+        cp.set(_section, module, json.dumps(packages, indent=2))
 
 
-def read_bad_smells(config: configparser.ConfigParser) -> list[BadSmell]:
+def read_bad_smells(cp: CP) -> list[Smell]:
     """
     >>> sample_config = '''
     ... [bad smells]
-    ...   BadSmellCrossModule
-    ...   BadSmellCrossPackage
-    ...   BadSmellCylicDependency
-    ...   ShouldNotDepend: [
+    ...   SmellDependencyCrossModule
+    ...   SmellDependencyCrossPackage
+    ...   SmellCylicDependency
+    ...   SmellDependency: [
     ...       {
-    ...         "from": {"module": "app", "package": "com.prettifier.pretty.helper" },
-    ...        "to": {"module": "app", "package": "com.fastaccess.data.dao", "name": "NameParser"}
+    ...         "from": {"module": "app", "package": "com.pretty.helper" },
+    ...        "to": {"module": "app", "package": "com.data.dao", "name": "NameParser"}
     ...       }
     ...     ]
     ... '''
-    >>> config = configparser.ConfigParser(allow_no_value=True)
-    >>> config.optionxform = str
-    >>> config.read_string(sample_config)
-    >>> bad_smells = read_bad_smells(config)
+    >>> cp = CP(allow_no_value=True)
+    >>> cp.optionxform = str
+    >>> cp.read_string(sample_config)
+    >>> bad_smells = read_bad_smells(cp)
     >>> print([type(s).__name__ for s in bad_smells])
-    ['BadSmellCrossModule', 'BadSmellCrossPackage', 'BadSmellCylicDependency', 'ShouldNotDepend']
+    ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency', 'SmellDependency']
     """
     module = __import__("smells")
     bad_smells = []
-    if config.has_section('bad smells'):
-        for smell_name, params_json in config.items('bad smells'):
+    if cp.has_section('bad smells'):
+        for smell_name, params_json in cp.items('bad smells'):
             if params_json:
                 smell_class_ = getattr(module, smell_name)
                 for params in json.loads(params_json):
-                    if smell_name == "ShouldNotDepend":
-                        bad_smells.append(
-                            smell_class_(params["from"], params["to"]))
-                    else:
-                        bad_smells.append(
-                            smell_class_(**params))
+                    bad_smells.append(smell_class_(**params))
             else:
                 smell_class_ = getattr(module, smell_name)
                 bad_smells.append(smell_class_())
     return bad_smells
 
 
-def write_bad_smells(config: configparser.ConfigParser, bad_smells: list[BadSmell] = example_bad_smells):
+def write_bad_smells(cp: CP, bad_smells: list[Smell] = example_bad_smells):
     def sorter(bs): return type(bs).__name__
-    config.add_section("bad smells")
-    config.set(
+    cp.add_section("bad smells")
+    cp.set(
         "bad smells", "; Uncomment following smells and replace with your rules ")
     for t, bs_list in groupby(sorted(bad_smells, key=sorter), key=sorter):
         args_list = [bs.all_args for bs in bs_list if bs.all_args]
-        config.set("bad smells", t, json.dumps(
+        cp.set("bad smells", t, json.dumps(
             args_list, indent=2) if len(args_list) > 0 else None)
 
 
-def read_layers(config: configparser.ConfigParser) -> dict[str: list[dict[str:str]]]:
+def read_layers(cp: CP) -> dict[str: list[dict[str:str]]]:
     """
     >>> sample_config = '''
     ... [layers]
     ...   platform = [
-    ...       { "module": "app", "package": "com.prettifier.pretty.helper" }
+    ...       { "module": "app", "package": "com.pretty.helper" }
     ...     ]
     ... '''
-    >>> config = configparser.ConfigParser(allow_no_value=True)
+    >>> config = CP(allow_no_value=True)
     >>> config.optionxform = str
     >>> config.read_string(sample_config)
     >>> layers = read_layers(config)
     >>> print(layers)
-    {'platform': [{'module': 'app', 'package': 'com.prettifier.pretty.helper'}]}
+    {'platform': [{'module': 'app', 'package': 'com.pretty.helper'}]}
     """
     layers = {}
-    if config.has_section('layers'):
-        for layer_name, _json in config.items('layers'):
+    if cp.has_section('layers'):
+        for layer_name, _json in cp.items('layers'):
             layers[layer_name] = json.loads(_json)
     return layers
 
 
-def write_layers(config: configparser.ConfigParser, layers: dict[str: list[dict[str:str]]] = exmaple_layers):
-    config.add_section("layers")
-    config.set("layers", "; Desired layers")
+def write_layers(cp: CP, layers: dict[str: list[dict[str:str]]] = exmaple_layers):
+    cp.add_section("layers")
+    cp.set("layers", "; Desired layers")
     for k, v in layers.items():
-        config.set("layers", k, json.dumps(v, indent=2))
+        cp.set("layers", k, json.dumps(v, indent=2))
 
 
-def write_example_config(config: configparser.ConfigParser, file_path: str):
-    write_logic_packages(config)
-    write_layers(config)
-    write_bad_smells(config)
+def write_example_config(cp: CP, file_path: str):
+    write_logic_packages(cp)
+    write_layers(cp)
+    write_bad_smells(cp)
 
     lines = ""
     with io.StringIO() as ss:
-        config.write(ss)
+        cp.write(ss)
         ss.seek(0)
-        lines = "".join([('; ' if not l.startswith(
-            "[") else '') + l for l in ss.readlines()])
+        lines = "".join([('; ' if not line.startswith(
+            "[") else '') + line for line in ss.readlines()])
 
     with open(file_path, 'w', encoding="utf-8") as configfile:
         configfile.writelines(lines)

@@ -1,15 +1,12 @@
-
-
-from json import encoder
-from config import read_bad_smells, read_layers, read_logic_pacakges, write_example_config
+# coding=utf-8
+from config import read_bad_smells, read_logic_pacakges, write_example_config
 import configparser
 import os
 import argparse
 import time
 
 from read_idea import parse_idea
-from smells import BadSmellCrossModule, BadSmellCrossPackage, BadSmellCylicDependency, find_smells
-from filters import filter_interested_packages
+from smells import SmellDependencyCrossModule, SmellDependencyCrossPackage, SmellCylicDependency, find_smells
 
 from markdown_write import console_markdown
 from uml_write import console_plant_uml
@@ -58,10 +55,10 @@ def main() -> None:
     args = init_argparse().parse_args()
 
     logic_pacakges = {}
-    layers = {}
-    bad_smells = [BadSmellCrossModule(),
-                  BadSmellCrossPackage(),
-                  BadSmellCylicDependency()]
+    # layers = {}
+    bad_smells = [SmellDependencyCrossModule(),
+                  SmellDependencyCrossPackage(),
+                  SmellCylicDependency()]
 
     cp = configparser.ConfigParser(allow_no_value=True)
     cp.optionxform = str
@@ -70,7 +67,7 @@ def main() -> None:
         with open(args.config, 'r') as f:
             cp.read_string(f.read())
         logic_pacakges = read_logic_pacakges(cp)
-        layers = read_layers(cp)
+        # layers = read_layers(cp)
         _config_bad_smells = read_bad_smells(cp)
         if len(_config_bad_smells) > 0:
             bad_smells = _config_bad_smells

@@ -45,12 +45,16 @@ def package_description(pkg: Package, top=3, oneline_format="{full_name}") -> st
         top_smell_dependencies_count,
         _percenet(top_smell_dependencies_count, smell_dependencies_count),
         "\n".join(
-            ["{}（{}）  ".format(c.oneline_str(oneline_format), _percenet(len(set(c.smell_dependencies)), smell_dependencies_count)) for c in top_smell_dependencies_classes]),
+            ["{}（{}）  ".format(c.oneline_str(oneline_format),
+                               _percenet(len(set(c.smell_dependencies)),
+                                         smell_dependencies_count)) for c in top_smell_dependencies_classes]),
         top,
         top_smell_usages_count,
         _percenet(top_smell_usages_count, smell_usages_count),
         "\n".join(
-            ["{}（{}）  ".format(c.oneline_str(oneline_format), _percenet(len(set(c.smell_usages)), smell_usages_count)) for c in top_smell_usages_classes]),
+            ["{}（{}）  ".format(c.oneline_str(oneline_format),
+                               _percenet(len(set(c.smell_usages)),
+                                         smell_usages_count)) for c in top_smell_usages_classes]),
     )
 
 

@@ -3,7 +3,7 @@
 from model import Class, Package
 
 
-class BadSmell(object):
+class Smell(object):
     def __init__(self, check, description):
         self.check = check
         self.description = description
@@ -19,25 +19,27 @@ class BadSmell(object):
         return None
 
 
-class ShouldNotDepend(BadSmell):
-    def __init__(self, from_dict, to_dict):
+class SmellDependency(Smell):
+
+    def __init__(self, *args, **kwargs):
+        self.from_dict = kwargs["from"]
+        self.to_dict = kwargs["to"]
+
         def check(cls, dep):
-            for k, v in from_dict.items():
+            for k, v in self.from_dict.items():
                 if getattr(cls, k) != v:
                     return False
-            for k, v in to_dict.items():
+            for k, v in self.to_dict.items():
                 if getattr(dep, k) != v:
                     return False
             return True
 
         description = "{}不应该依赖{}".format(
             "里的".join(["{}:{}".format(k, v)
-                       for k, v in from_dict.items()]),
-            "里的".join(["{}:{}".format(k, v) for k, v in to_dict.items()])
+                       for k, v in self.from_dict.items()]),
+            "里的".join(["{}:{}".format(k, v) for k, v in self.to_dict.items()])
         )
         super().__init__(check, description)
-        self.from_dict = from_dict
-        self.to_dict = to_dict
 
     @property
     def all_args(self):
@@ -56,17 +58,17 @@ def smell_cylic_dependency(
     cls, dep): return dep.is_production and dep.path in [u.path for u in cls.usages]
 
 
-class BadSmellCrossModule(BadSmell):
+class SmellDependencyCrossModule(Smell):
     def __init__(self) -> None:
         super().__init__(smell_cross_module, "此依赖关系跨模块，需进一步分析")
 
 
-class BadSmellCrossPackage(BadSmell):
+class SmellDependencyCrossPackage(Smell):
     def __init__(self) -> None:
         super().__init__(smell_cross_package, "此依赖关系跨包，需进一步分析")
 
 
-class BadSmellCylicDependency(BadSmell):
+class SmellCylicDependency(Smell):
     def __init__(self) -> None:
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 
