@@ -5,9 +5,11 @@ Refactor Guide
 
 .. image:: https://img.shields.io/pypi/v/refactorguide.svg
         :target: https://pypi.python.org/pypi/refactorguide
+  
 
-.. .. image:: https://img.shields.io/travis/qinyu/refactorguide.svg
-..         :target: https://travis-ci.com/qinyu/refactorguide
+.. image:: https://github.com/qinyu/refactorguide/workflows/Python%20package/badge.svg
+        :target: https://github.com/qinyu/refactorguide/actions
+
 
 .. image:: https://readthedocs.org/projects/refactor-guide/badge/?version=latest
         :target: https://refactor-guide.readthedocs.io/en/latest/?badge=latest
