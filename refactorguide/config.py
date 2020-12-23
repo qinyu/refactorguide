@@ -2,12 +2,12 @@
 from configparser import ConfigParser as CP
 import io
 import json
+import importlib
 from refactorguide.smells import Smell, SmellDependency, SmellDependencyCrossModule, \
     SmellDependencyCrossPackage, SmellCylicDependency
 from itertools import groupby
 
 from typing import List, Dict
-
 
 exmaple_layers = {
     "application": [],
@@ -102,7 +102,7 @@ def read_bad_smells(cp: CP) -> List[Smell]:
     >>> print([type(s).__name__ for s in bad_smells])
     ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency', 'SmellDependency']
     """
-    module = __import__("refactorguide.smells")
+    module = importlib.import_module("refactorguide.smells")
     bad_smells = []
     if cp.has_section('bad smells'):
         for smell_name, params_json in cp.items('bad smells'):
@@ -171,6 +171,8 @@ def write_example_config(cp: CP, file_path: str):
     with open(file_path, 'w', encoding="utf-8") as configfile:
         configfile.writelines(lines)
 
+
+LAYERS = []
 
 if __name__ == "__main__":
     import doctest

@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import fnmatch
 from itertools import groupby
 from operator import attrgetter
 from typing import Dict, List
@@ -101,7 +102,7 @@ class Class(Component):
 
     @property
     def logic_name(self):
-        return self.full_name[len(self.package):]
+        return self.full_name[len(self.package)+1:]
 
     @property
     def is_production(self):
@@ -112,7 +113,15 @@ class Class(Component):
 
     @property
     def all_attributes(self):
-        return dict(vars(self), full_name=self.full_name)
+        all_attrs = dict(vars(self), full_name=self.full_name)
+        all_attrs['class'] = self.logic_name
+        return all_attrs
+
+    def wildcard_macth(self, **kwargs):
+        for attr_name, wildcard in kwargs.items():
+            if not fnmatch.fnmatch(self.all_attributes.get(attr_name), wildcard):
+                return False
+        return True
 
     def __str__(self):
         return str(self.__dict__)

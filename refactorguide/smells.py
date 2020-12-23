@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from typing import Dict
+from typing import Dict, List
 from refactorguide.model import Class, Package
+from refactorguide.config import LAYERS
 
 
 class Smell(object):
@@ -22,18 +23,28 @@ class Smell(object):
 
 class SmellDependency(Smell):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self.from_dict = kwargs["from"]
         self.to_dict = kwargs["to"]
 
-        def check(cls, dep):
-            for k, v in self.from_dict.items():
-                if getattr(cls, k) != v:
-                    return False
-            for k, v in self.to_dict.items():
-                if getattr(dep, k) != v:
-                    return False
-            return True
+        # def check(cls, dep):
+        #     for k, v in self.from_dict.items():
+        #         if getattr(cls, k) != v:
+        #             return False
+        #     for k, v in self.to_dict.items():
+        #         if getattr(dep, k) != v:
+        #             return False
+        #     return True
+
+        def check(cls: Class, dep: Class):
+            return cls.wildcard_macth(**self.from_dict) and dep.wildcard_macth(**self.to_dict)
+            # for attr_name, wildcard in self.from_dict.items():
+            #     if not fnmatch.fnmatch(cls.all_attributes.get(attr_name), wildcard):
+            #         return False
+            # for attr_name, wildcard in self.to_dict.items():
+            #     if not fnmatch.fnmatch(dep.all_attributes.get(attr_name), wildcard):
+            #         return False
+            # return True
 
         description = "{}不应该依赖{}".format(
             "里的".join(["{}:{}".format(k, v)
@@ -42,7 +53,7 @@ class SmellDependency(Smell):
         )
         super().__init__(check, description)
 
-    @property
+    @ property
     def all_args(self):
         return {"from": self.from_dict, "to": self.to_dict}
 
@@ -72,6 +83,26 @@ class SmellDependencyCrossPackage(Smell):
 class SmellCylicDependency(Smell):
     def __init__(self) -> None:
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
+
+
+def is_layer(cls: Class, wildcards: List[Dict[str, str]]):
+    for w in wildcards:
+        if cls.wildcard_macth(**w):
+            return True
+    return False
+
+
+class SmellLayerDependency(Smell):
+    def __init__(self, **kwargs):
+        self.from_layer = kwargs["from"]
+        self.to_layer = kwargs["to"]
+
+        def check(cls: Class, dep: Class):
+            return is_layer(cls, LAYERS(self.from_layer)) and is_layer(dep,  LAYERS(self.to_layer))
+
+        description = "{}Layer不应该依赖{}Layer".format(
+            self.from_layer, self.to_layer)
+        super().__init__(check, description)
 
 
 def find_smells(module_dict: Dict[str, Dict[str, Package]], dependency_smells):
