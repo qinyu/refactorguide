@@ -26,5 +26,5 @@ def write_files(report_dir, module_dict: Dict[str, Dict[str, Package]]):
                        package_description(pkg,
                                            oneline_format=oneline_md_format) + smells_markdown_depscription(pkg))
             for cls in pkg.classes:
-                write_file(os.path.join(report_dir, m, p),  cls.full_name +
+                write_file(os.path.join(report_dir, m, p),  cls.logic_name +
                            ".md", class_description(cls) + smells_markdown_depscription(cls))
