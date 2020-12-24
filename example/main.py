@@ -1,4 +1,4 @@
-from refactorguide.settings_parser import load_settings_file
+from refactorguide.design_parser import load_design_file
 import os
 import time
 import refactorguide.input_idea as input_idea
@@ -6,23 +6,23 @@ from refactorguide.smells import SmellCylicDependency, SmellDependencyCrossModul
     find_smells
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
-import refactorguide.settings as settings
+import refactorguide.desgin as design
 import sys
 sys.path.append('../')
 
 
 def main() -> None:
-    load_settings_file("example/settings.ini")
+    load_design_file("example/design.ini")
     print(os.getcwd())
     module_dict = input_idea.read_file(
-        "example/deps.xml", settings.LOGIC_PACKAGES)
+        "example/index.xml", design.LOGIC_PACKAGES)
 
-    if not settings.SMELLS:
-        settings.set_smells([SmellDependencyCrossModule(),
-                             SmellDependencyCrossPackage(),
-                             SmellCylicDependency()])
+    if not design.SMELLS:
+        design.set_smells([SmellDependencyCrossModule(),
+                           SmellDependencyCrossPackage(),
+                           SmellCylicDependency()])
 
-    find_smells(module_dict, settings.SMELLS)
+    find_smells(module_dict, design.SMELLS)
 
     dt = time.strftime("report-%Y%m%d-%H-%M", time.localtime())
     output_md.write_files(os.path.join(dt, 'md'), module_dict)

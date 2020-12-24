@@ -2,7 +2,7 @@
 
 from typing import Dict
 from refactorguide.models import Class, Package
-import refactorguide.settings as settings
+import refactorguide.desgin as design
 
 
 class Smell(object):
@@ -27,29 +27,14 @@ class SmellDependency(Smell):
         self.from_dict = kwargs["from"]
         self.to_dict = kwargs["to"]
 
-        # def check(cls, dep):
-        #     for k, v in self.from_dict.items():
-        #         if getattr(cls, k) != v:
-        #             return False
-        #     for k, v in self.to_dict.items():
-        #         if getattr(dep, k) != v:
-        #             return False
-        #     return True
-
         def check(cls: Class, dep: Class):
             return cls.wildcard_macth(**self.from_dict) and dep.wildcard_macth(**self.to_dict)
-            # for attr_name, wildcard in self.from_dict.items():
-            #     if not fnmatch.fnmatch(cls.all_attributes.get(attr_name), wildcard):
-            #         return False
-            # for attr_name, wildcard in self.to_dict.items():
-            #     if not fnmatch.fnmatch(dep.all_attributes.get(attr_name), wildcard):
-            #         return False
-            # return True
 
-        description = "{}不应该依赖{}".format(
-            "里的".join(["{}:{}".format(k, v)
-                       for k, v in self.from_dict.items()]),
-            "里的".join(["{}:{}".format(k, v) for k, v in self.to_dict.items()])
+        description = "{} shouldn't depends {} from".format(
+            "'s ".join(["{}'{}'".format(k, v)
+                        for k, v in self.from_dict.items()]),
+            "'s ".join(["{}'{}'".format(k, v)
+                        for k, v in self.to_dict.items()])
         )
         super().__init__(check, description)
 
@@ -86,7 +71,7 @@ class SmellCylicDependency(Smell):
 
 
 def is_layer(cls: Class, layer):
-    for w in settings.LAYERS[layer]:
+    for w in design.LAYERS[layer]:
         if cls.wildcard_macth(**w):
             return True
     return False

@@ -1,5 +1,5 @@
 Welcome to Refactor Guide's documentation!
-======================================
+==========================================
 
 .. toctree::
    :maxdepth: 2

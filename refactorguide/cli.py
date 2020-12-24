@@ -1,8 +1,9 @@
 """Console script for refactorguide."""
 import argparse
+import refactorguide
 import sys
 
-from refactorguide.settings_parser import load_settings_file
+from refactorguide.design_parser import load_design_file
 import os
 import time
 
@@ -13,7 +14,7 @@ from refactorguide.smells import SmellDependencyCrossModule, SmellDependencyCros
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
 
-import refactorguide.settings as settings
+import refactorguide.desgin as desgin
 
 
 outputs = {
@@ -28,12 +29,12 @@ parsers = {
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        usage="%(prog)s [OPTIONS] input",
+        usage="%(prog)s [OPTIONS] index design",
         description="重构助手，根据你的设计找出代码的坏味道"
     )
     parser.add_argument(
         "-v", "--version", action="version",
-        version="1.0.0"
+        version=refactorguide.__version__
     )
     parser.add_argument(
         "-o", "--outputs",
@@ -49,23 +50,23 @@ def init_argparse() -> argparse.ArgumentParser:
         choices=parsers.keys(),
         help="输入文件格式，默认是IDEA的依赖文件格式"
     )
-    parser.add_argument('input', help="依赖关系文件")
-    parser.add_argument('--settings', nargs=1,
-                        help="配置文件，提供分层设计和依赖规则", default="settings.ini")
+    parser.add_argument('index', help="依赖关系文件，目前只支持IDEA中导出的依赖关系文件")
+    parser.add_argument(
+        'design', help="设计文件，提供包设计、层设计和依赖坏味道。如指定文件不存在，会自动生成一个，在此基础上进行设计")
     return parser
 
 
 def main() -> None:
     args = init_argparse().parse_args()
-    load_settings_file(args.settings, generate_example=True)
+    load_design_file(args.design, generate_example=True)
 
-    module_dict = parsers[args.parser](args.input, settings.LOGIC_PACKAGES)
+    module_dict = parsers[args.parser](args.index, desgin.LOGIC_PACKAGES)
 
-    if len(settings.SMELLS) == 0:
-        settings.set_smells([SmellDependencyCrossModule(),
-                             SmellDependencyCrossPackage(),
-                             SmellCylicDependency()])
-    find_smells(module_dict, settings.SMELLS)
+    if len(desgin.SMELLS) == 0:
+        desgin.set_smells([SmellDependencyCrossModule(),
+                           SmellDependencyCrossPackage(),
+                           SmellCylicDependency()])
+    find_smells(module_dict, desgin.SMELLS)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for o in args.outputs:
