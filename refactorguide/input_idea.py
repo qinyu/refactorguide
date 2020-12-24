@@ -1,4 +1,4 @@
-from refactorguide.model import Class, Dependency, Package, grouped_by_modules_and_packages, \
+from refactorguide.models import Class, Dependency, Package, grouped_by_modules_and_packages, \
     update_class_logic_packages
 import re
 import xml.etree.ElementTree as ET
@@ -96,7 +96,7 @@ def update_idea_class_usages(class_list):
                 c.usages = usages
 
 
-def parse_idea(idea_dep_file_path, logic_pacakges):
+def read_file(idea_dep_file_path, logic_pacakges):
     all_files = ET.parse(idea_dep_file_path).getroot().findall("file")
     all_classes = [parse_idea_class(f) for f in all_files]
     all_classes = [c for c in all_classes if c]

@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from typing import Dict, List
-from refactorguide.model import Class, Package
+from refactorguide.models import Class, Package
 
 
 pd_format = """

@@ -3,11 +3,15 @@ from configparser import ConfigParser as CP
 import io
 import json
 import importlib
+import configparser
+import os
 from refactorguide.smells import Smell, SmellDependency, SmellDependencyCrossModule, \
     SmellDependencyCrossPackage, SmellCylicDependency
 from itertools import groupby
 
 from typing import List, Dict
+
+from refactorguide.settings import set_smells, set_layers, set_logic_packages
 
 exmaple_layers = {
     "application": [],
@@ -27,7 +31,7 @@ example_logic_pacakges = {
     'InAnotherModule':  ['you.can.set', 'multiple.packages']
 }
 
-example_bad_smells = [
+example_smells = [
     SmellDependencyCrossModule(),
     SmellDependencyCrossPackage(),
     SmellCylicDependency(),
@@ -59,7 +63,8 @@ def read_logic_pacakges(cp: CP) -> Dict[str, List[str]]:
     >>> cp.read_string(sample_config)
     >>> logic_packages = read_logic_pacakges(cp)
     >>> print(logic_packages)
-    {'app': ['com.pretty.helper', 'com.data.dao.converters'], 'Test': ['com.pretty.helper.test']}
+    {'app': ['com.pretty.helper', 'com.data.dao.converters'],
+        'Test': ['com.pretty.helper.test']}
     """
     logic_pacakges = {}
     if cp.has_section('logic packages'):
@@ -71,7 +76,7 @@ def read_logic_pacakges(cp: CP) -> Dict[str, List[str]]:
     return logic_pacakges
 
 
-def write_logic_packages(cp: CP, logic_pacakges: Dict[str, List[str]] = example_logic_pacakges):
+def write_logic_packages(cp: CP, logic_pacakges: Dict[str, List[str]]):
     _section = "logic pacakges"
     cp.add_section(_section)
     cp.set(_section,
@@ -81,7 +86,7 @@ def write_logic_packages(cp: CP, logic_pacakges: Dict[str, List[str]] = example_
         cp.set(_section, module, json.dumps(packages, indent=2))
 
 
-def read_bad_smells(cp: CP) -> List[Smell]:
+def read_smells(cp: CP) -> List[Smell]:
     """
     >>> sample_config = '''
     ... [bad smells]
@@ -100,7 +105,8 @@ def read_bad_smells(cp: CP) -> List[Smell]:
     >>> cp.read_string(sample_config)
     >>> bad_smells = read_bad_smells(cp)
     >>> print([type(s).__name__ for s in bad_smells])
-    ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency', 'SmellDependency']
+    ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage',
+        'SmellCylicDependency', 'SmellDependency']
     """
     module = importlib.import_module("refactorguide.smells")
     bad_smells = []
@@ -116,7 +122,7 @@ def read_bad_smells(cp: CP) -> List[Smell]:
     return bad_smells
 
 
-def write_bad_smells(cp: CP, bad_smells: List[Smell] = example_bad_smells):
+def write_smells(cp: CP, bad_smells: List[Smell]):
     def sorter(bs): return type(bs).__name__
     cp.add_section("bad smells")
     cp.set(
@@ -149,17 +155,17 @@ def read_layers(cp: CP) -> Dict[str, List[Dict[str, str]]]:
     return layers
 
 
-def write_layers(cp: CP, layers: Dict[str, List[Dict[str, str]]] = exmaple_layers):
+def write_layers(cp: CP, layers: Dict[str, List[Dict[str, str]]]):
     cp.add_section("layers")
     cp.set("layers", "; Desired layers")
     for k, v in layers.items():
         cp.set("layers", k, json.dumps(v, indent=2))
 
 
-def write_example_config(cp: CP, file_path: str):
-    write_logic_packages(cp)
-    write_layers(cp)
-    write_bad_smells(cp)
+def write_settings_file(cp: CP, file_path: str, logic_pacakges, layers, smells):
+    write_logic_packages(cp, logic_pacakges)
+    write_layers(cp, layers)
+    write_smells(cp, smells)
 
     lines = ""
     with io.StringIO() as ss:
@@ -172,8 +178,16 @@ def write_example_config(cp: CP, file_path: str):
         configfile.writelines(lines)
 
 
-LAYERS = []
+def load_settings_file(config_file_path, generate_example=False):
+    cp = configparser.ConfigParser(allow_no_value=True)
+    cp.optionxform = str
 
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+    if os.path.exists(config_file_path):
+        with open(config_file_path, 'r') as f:
+            cp.read_string(f.read())
+        set_logic_packages(read_logic_pacakges(cp))
+        set_layers(read_layers(cp))
+        set_smells(read_smells(cp))
+    elif generate_example:
+        write_settings_file(
+            cp, config_file_path, example_logic_pacakges, exmaple_layers, example_smells)

@@ -1,11 +1,11 @@
 
 # coding=utf-8
 
-from refactorguide.utils import export_to_file
-from refactorguide.model import grouped_by_modules_and_packages
+from refactorguide.tools import write_file
+from refactorguide.models import grouped_by_modules_and_packages
 
 
-def console_plant_uml(report_dir, module_dict):
+def write_files(report_dir, module_dict):
     # dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
     for m, pkg_dict in module_dict.items():
         # build plantuml head
@@ -29,7 +29,7 @@ def console_plant_uml(report_dir, module_dict):
                                           file.smell_dependencies, False)
                 uml += get_plant_relation(file, file.smell_usages, True)
             uml += "\n@enduml"
-            export_to_file(report_dir+"/" + m + "/"+p+"/", p+".puml", uml)
+            write_file(report_dir+"/" + m + "/"+p+"/", p+".puml", uml)
         print("end print "+m+"to uml")
 
 

@@ -1,8 +1,8 @@
 # coding=utf-8
 
-from typing import Dict, List
-from refactorguide.model import Class, Package
-from refactorguide.config import LAYERS
+from typing import Dict
+from refactorguide.models import Class, Package
+import refactorguide.settings as settings
 
 
 class Smell(object):
@@ -85,8 +85,8 @@ class SmellCylicDependency(Smell):
         super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
 
 
-def is_layer(cls: Class, wildcards: List[Dict[str, str]]):
-    for w in wildcards:
+def is_layer(cls: Class, layer):
+    for w in settings.LAYERS[layer]:
         if cls.wildcard_macth(**w):
             return True
     return False
@@ -98,7 +98,7 @@ class SmellLayerDependency(Smell):
         self.to_layer = kwargs["to"]
 
         def check(cls: Class, dep: Class):
-            return is_layer(cls, LAYERS(self.from_layer)) and is_layer(dep,  LAYERS(self.to_layer))
+            return is_layer(cls, self.from_layer) and is_layer(dep, self.to_layer)
 
         description = "{}Layer不应该依赖{}Layer".format(
             self.from_layer, self.to_layer)

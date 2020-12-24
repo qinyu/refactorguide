@@ -33,7 +33,7 @@ setup(
     description="Generate guides for refactor.",
     entry_points={
         'console_scripts': [
-            'refactorguide=refactorguide.cli:main',
+            'refactorguide=refactorguide.__main__:main',
         ],
     },
     install_requires=requirements,

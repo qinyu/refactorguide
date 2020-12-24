@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-
-"""Tests for `refactorguide` package."""
-
-from refactorguide.model import Class, Dependency, grouped_by_modules_and_packages, update_class_logic_packages
+from refactorguide.models import Class, Dependency, grouped_by_modules_and_packages, update_class_logic_packages
 
 
 def test_grouped_by_modules_and_packages():
@@ -42,12 +39,14 @@ def test_grouped_by_modules_and_packages():
 
 
 def test_update_class_logic_packages():
-    cls = Class(path="", name="View", raw_package="info.qinyu.biz.ui", module="test")
+    cls = Class(path="", name="View",
+                raw_package="info.qinyu.biz.ui", module="test")
     cls.dependencies = [
-            Dependency(path="", name="Model", raw_package="info.qinyu.biz.model", module="test", category="Production")]
+        Dependency(path="", name="Model", raw_package="info.qinyu.biz.model", module="test", category="Production")]
     cls.usages = [
-            Dependency(path="", name="App", raw_package="info.qinyu", module="test", category="Production"),
-            Dependency(path="", name="Page", raw_package="info.qinyu.biz.ui", module="test", category="Production")]
+        Dependency(path="", name="App", raw_package="info.qinyu",
+                   module="test", category="Production"),
+        Dependency(path="", name="Page", raw_package="info.qinyu.biz.ui", module="test", category="Production")]
 
     # Nothing get updated if empty
     update_class_logic_packages([cls], {})

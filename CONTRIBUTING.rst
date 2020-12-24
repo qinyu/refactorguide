@@ -111,7 +111,7 @@ Tips
 
 To run a subset of tests::
 
-$ pytest tests/test_model.py
+$ pytest tests/test_models.py
 
 
 Deploying
