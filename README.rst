@@ -10,11 +10,7 @@ Refactor Guide
         :target: https://refactorguide.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/qinyu/refactorguide/shield.svg
-     :target: https://pyup.io/repos/github/qinyu/refactorguide/
-     :alt: Updates
-
-.. image:: https://github.com/qinyu/refactorguide/workflows/Python%20package/badge.svg
+.. image:: https://github.com/qinyu/refactorguide/workflows/build/badge.svg
         :target: https://github.com/qinyu/refactorguide/actions
 
 .. image:: https://img.shields.io/codecov/c/github/qinyu/refactorguide
@@ -22,6 +18,10 @@ Refactor Guide
 
 .. image:: https://sonarcloud.io/api/project_badges/measure?project=qinyu_refactorguide&metric=alert_status
         :target: https://sonarcloud.io/dashboard?id=qinyu_refactorguide
+
+.. image:: https://pyup.io/repos/github/qinyu/refactorguide/shield.svg
+     :target: https://pyup.io/repos/github/qinyu/refactorguide/
+     :alt: Updates
 
 
 Commandline tools for refactor
