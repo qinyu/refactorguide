@@ -1,18 +1,20 @@
-import refactorguide.settings as settings
-import refactorguide.output_uml as output_uml
-import refactorguide.output_md as output_md
-from refactorguide.smells import find_smells
-import refactorguide.input_idea as input_idea
-import time
-import os
 from refactorguide.settings_parser import load_settings_file
+import os
+import time
+import refactorguide.input_idea as input_idea
+from refactorguide.smells import find_smells
+import refactorguide.output_md as output_md
+import refactorguide.output_uml as output_uml
+import refactorguide.settings as settings
+import sys
+sys.path.append('../')
 
 
 def main() -> None:
-    load_settings_file("settings.ini")
-
+    load_settings_file("example/settings.ini")
+    print(os.getcwd())
     module_dict = input_idea.read_file(
-        "deps.xml", settings.LOGIC_PACKAGES)
+        "example/deps.xml", settings.LOGIC_PACKAGES)
 
     # settings.set_smells([SmellDependencyCrossModule(),
     #                      SmellDependencyCrossPackage(),
