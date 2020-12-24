@@ -2,7 +2,8 @@ from refactorguide.settings_parser import load_settings_file
 import os
 import time
 import refactorguide.input_idea as input_idea
-from refactorguide.smells import find_smells
+from refactorguide.smells import SmellCylicDependency, SmellDependencyCrossModule, SmellDependencyCrossPackage, \
+    find_smells
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
 import refactorguide.settings as settings
@@ -16,9 +17,10 @@ def main() -> None:
     module_dict = input_idea.read_file(
         "example/deps.xml", settings.LOGIC_PACKAGES)
 
-    # settings.set_smells([SmellDependencyCrossModule(),
-    #                      SmellDependencyCrossPackage(),
-    #                      SmellCylicDependency()])
+    if not settings.SMELLS:
+        settings.set_smells([SmellDependencyCrossModule(),
+                             SmellDependencyCrossPackage(),
+                             SmellCylicDependency()])
 
     find_smells(module_dict, settings.SMELLS)
 
