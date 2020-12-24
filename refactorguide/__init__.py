@@ -2,7 +2,7 @@
 
 __author__ = """Qin Yu"""
 __email__ = 'qinyusuain@gmail.com'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import refactorguide.settings as settings
 
