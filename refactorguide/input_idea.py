@@ -36,10 +36,8 @@ def idea_java_file_filter(
     file_path: str) -> bool: return file_path.endswith("java")
 
 
-def covnvert_class_match_dict(_dict):
-    """
-    docstring
-    """
+def convert_class_match_dict(_dict):
+    """    """
     _dict["raw_package"] = _dict["raw_package"].replace("/", ".")
     _dict["module"] = _dict["module"].replace("/", ".").lstrip(".")
     return _dict
@@ -51,7 +49,7 @@ def parse_idea_class(file_node):
     if match:
         dependencies = [parse_idea_dependency(d)
                         for d in file_node.findall("dependency")]
-        return Class(dependencies=[d for d in dependencies if d], **covnvert_class_match_dict(match.groupdict()))
+        return Class(dependencies=[d for d in dependencies if d], **convert_class_match_dict(match.groupdict()))
     # print("Warning: class missed %s" % path)
     return None
 
@@ -65,7 +63,7 @@ def parse_idea_dependency(dependency_node):
             match = compiled_re.match(_path)
             if match:
                 dep = Dependency(
-                    category=cat, **covnvert_class_match_dict(match.groupdict()))
+                    category=cat, **convert_class_match_dict(match.groupdict()))
                 break
 
     # if not dep:

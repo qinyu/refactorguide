@@ -17,6 +17,16 @@ sample_design = '''
        "to": {"module": "app", "package": "com.data.dao", "name": "NameParser"}
       }
     ]
+  SmellLayerDependency: [
+      {
+        "from": "platform",
+       "to": "app"
+      },
+      {
+        "from": "service",
+       "to": "app"
+      }
+    ]
 
 [layers]
   platform = [
@@ -42,8 +52,10 @@ def test_read_logic_packages(config_parser: CP):
 def test_read_smells(config_parser: CP):
     config_parser.read_string(sample_design)
     smells = read_smells(config_parser)
-    assert [type(s).__name__ for s in smells] == ['SmellDependencyCrossModule', 'SmellDependencyCrossPackage',
-                                                  'SmellCylicDependency', 'SmellDependency']
+    assert [type(s).__name__ for s in smells] == [
+        'SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency',
+        'SmellDependency',
+        'SmellLayerDependency', 'SmellLayerDependency']
 
 
 def test_read_layers(config_parser: CP):

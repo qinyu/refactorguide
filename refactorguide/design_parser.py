@@ -135,7 +135,7 @@ def load_design_file(design_file_path, generate_example=False):
     cp.optionxform = str
 
     if os.path.exists(design_file_path):
-        with open(design_file_path, 'r') as design_file:
+        with open(design_file_path, 'r', encoding='utf-8') as design_file:
             cp.read_string(design_file.read())
         set_logic_packages(read_logic_pacakges(cp))
         set_layers(read_layers(cp))

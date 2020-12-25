@@ -85,7 +85,7 @@ class SmellLayerDependency(Smell):
         def check(cls: Class, dep: Class):
             return is_layer(cls, self.from_layer) and is_layer(dep, self.to_layer)
 
-        description = "{}Layer不应该依赖{}Layer".format(
+        description = "'{}' layer shouldn't depend on '{}' layer".format(
             self.from_layer, self.to_layer)
         super().__init__(check, description)
 

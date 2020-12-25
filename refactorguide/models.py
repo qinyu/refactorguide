@@ -113,7 +113,8 @@ class Class(Component):
 
     @property
     def all_attributes(self):
-        all_attrs = dict(vars(self), full_name=self.full_name)
+        all_attrs = dict(vars(self), full_name=self.full_name,
+                         logic_name=self.logic_name)
         all_attrs['class'] = self.logic_name
         return all_attrs
 
