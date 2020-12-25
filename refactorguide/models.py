@@ -11,6 +11,14 @@ sorter = attrgetter('module', 'package', 'raw_package', 'name')
 class Component(object):
 
     @property
+    def dependencies(self):
+        return sorted(set([d for c in self.classes for d in c.dependencies]), key=sorter)
+
+    @property
+    def usages(self):
+        return sorted(set([u for c in self.classes for u in c.usages]), key=sorter)
+
+    @property
     def smell_dependencies(self):
         return [d for d in self.dependencies if d.has_smell]
 
@@ -194,28 +202,23 @@ class Package(Component):
         self.module = module
 
     @property
-    def dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.dependencies]), key=sorter)
-
-    @property
-    def smell_dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.smell_dependencies]), key=sorter)
-
-    @property
-    def usages(self):
-        return sorted(set([u for c in self.classes for u in c.usages]), key=sorter)
-
-    @property
-    def smell_usages(self):
-        return sorted(set([u for c in self.classes for u in c.smell_usages]), key=sorter)
-
-    @property
     def classes(self) -> List[Class]:
         return self._classes
 
     @classes.setter
     def classes(self, classes):
         self._classes = sorted(classes, key=sorter)
+
+    def __getitem__(self, key: str) -> Class:
+        # TODO use logic name?
+        return next((p for p in self._classes if p.name == key), None)
+
+    def __setitem__(self, key: str, cls: Class):
+        found = self.__getitem__(key)
+        if not found:
+            self._classes.append(cls)
+            # TODO use logic name?
+            self._classes = sorted(self._classes, key=attrgetter("name"))
 
     @property
     def full_name(self):
@@ -247,6 +250,18 @@ class Module(Component):
     def packages(self, packages: List[Package]):
         self._packages = sorted(packages, key=attrgetter("name"))
 
+    def __getitem__(self, key: str) -> Package:
+        return next((p for p in self._packages if p.name == key), None)
+
+    def __setitem__(self, key: str, package: Package):
+        finded = self.__getitem__(key)
+        if not finded:
+            self._packages.append(package)
+            self._packages = sorted(self._packages, key=attrgetter("name"))
+
+    def __delitem__(self, key):
+        del self.store[self._keytransform(key)]
+
 
 def grouped_by_modules_and_packages(classes: List[Class]) -> Dict[str, Dict[str, Class]]:
     """Group class by its attributes: 'module', 'pacakge'(not 'raw_package') and 'name', returns an embeded dict"""
@@ -259,6 +274,17 @@ def grouped_by_modules_and_packages(classes: List[Class]) -> Dict[str, Dict[str,
 
         module_dict[m] = package_dict
     return module_dict
+
+
+def hierachy(classes: List[Class]) -> Dict[str, Module]:
+    result = {}
+    module_dict = grouped_by_modules_and_packages(classes)
+    for m, package_dict in module_dict.items():
+        module = Module(m, [])
+        for p, p_cls_list in package_dict.items():
+            module[p] = Package(m, p, p_cls_list)
+        result[m] = module
+    return result
 
 
 def update_class_logic_packages(class_list: List[Class], logic_pacakges: Dict[str, List[str]]):

@@ -1,16 +1,17 @@
 
 # coding=utf-8
 
+from typing import Dict
 from refactorguide.tools import write_file
-from refactorguide.models import grouped_by_modules_and_packages
+from refactorguide.models import Module, grouped_by_modules_and_packages
 
 
-def write_files(report_dir, module_dict):
+def write_files(report_dir, module_dict: Dict[str, Module]):
     # dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
-    for m, pkg_dict in module_dict.items():
+    for m, module in module_dict.items():
         # build plantuml head
         print("start print "+m+"to uml")
-        for p, pkg in pkg_dict.items():
+        for pkg in module.packages:
             uml = "@startuml \n\n"
             group_classes = []
             group_dict = {}
@@ -29,7 +30,8 @@ def write_files(report_dir, module_dict):
                                           file.smell_dependencies, False)
                 uml += get_plant_relation(file, file.smell_usages, True)
             uml += "\n@enduml"
-            write_file(report_dir+"/" + m + "/"+p+"/", p+".puml", uml)
+            write_file(report_dir+"/" + m + "/" +
+                       pkg.name+"/", pkg.name+".puml", uml)
         print("end print "+m+"to uml")
 
 

@@ -1,5 +1,8 @@
 
 
+from refactorguide.smells import SmellCylicDependency, SmellDependencyCrossModule, SmellDependencyCrossPackage
+
+
 def set_layers(layers):
     global LAYERS
     LAYERS = layers
@@ -18,4 +21,6 @@ def set_smells(smells):
 def init():
     set_layers({})
     set_logic_packages({})
-    set_smells([])
+    set_smells([SmellDependencyCrossModule(),
+                SmellDependencyCrossPackage(),
+                SmellCylicDependency()])

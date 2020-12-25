@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from typing import Dict
-from refactorguide.models import Class, Package
+from refactorguide.models import Class, Module
 import refactorguide.desgin as design
 
 
@@ -90,10 +90,10 @@ class SmellLayerDependency(Smell):
         super().__init__(check, description)
 
 
-def find_smells(module_dict: Dict[str, Dict[str, Package]], dependency_smells):
-    for m, pkg_dict in module_dict.items():
-        for p, pkg in pkg_dict.items():
-            for c in pkg.classes:
+def find_smells(module_dict: Dict[str, Module], dependency_smells):
+    for m in module_dict.values():
+        for p in m.packages:
+            for c in p.classes:
                 for d in [d for d in c.dependencies if d.is_production]:
                     for smell in dependency_smells:
                         if smell(c, d):

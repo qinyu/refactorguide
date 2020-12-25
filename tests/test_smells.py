@@ -31,12 +31,12 @@ unkown_cls = Class(path='3rdparty/src/main/org/junit/Test.java',
                    module='junit', raw_package='org.junit', name='Test')
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def setup_layers():
     design.set_layers(layers)
 
 
-def test_is_in_layer():
+def test_is_in_layer(setup_layers):
     assert is_layer(http_cls, 'platform')
     assert is_layer(log_cls, 'platform')
     assert is_layer(app_cls, 'app')
@@ -49,7 +49,7 @@ def test_is_in_layer():
     assert not is_layer(log_cls, 'app')
 
 
-def test_smell_layer_dependency():
+def test_smell_layer_dependency(setup_layers):
     smell_platform_depend_app = SmellLayerDependency(
         **{'from': 'platform', 'to': 'app'})
     assert smell_platform_depend_app(http_cls, app_cls)
@@ -60,12 +60,21 @@ def test_smell_layer_dependency():
     assert not smell_platform_depend_app(app_cls, page_cls)
 
 
-def test_smell_dependency():
-    smell_platform_depend_app = SmellLayerDependency(
-        **{'from': 'platform', 'to': 'app'})
-    assert smell_platform_depend_app(http_cls, app_cls)
-    assert smell_platform_depend_app(log_cls, page_cls)
-    assert not smell_platform_depend_app(app_cls, http_cls)
-    assert not smell_platform_depend_app(app_cls, http_cls)
-    assert not smell_platform_depend_app(http_cls, log_cls)
-    assert not smell_platform_depend_app(app_cls, page_cls)
+# def test_smell_dependency():
+#     assert smell_platform_depend_app(http_cls, app_cls)
+#     assert smell_platform_depend_app(log_cls, page_cls)
+#     assert not smell_platform_depend_app(app_cls, http_cls)
+#     assert not smell_platform_depend_app(app_cls, http_cls)
+#     assert not smell_platform_depend_app(http_cls, log_cls)
+#     assert not smell_platform_depend_app(app_cls, page_cls)
+
+
+# def test_smell_dependency():
+#     smell_platform_depend_app = SmellLayerDependency(
+#         **{'from': 'platform', 'to': 'app'})
+#     assert smell_platform_depend_app(http_cls, app_cls)
+#     assert smell_platform_depend_app(log_cls, page_cls)
+#     assert not smell_platform_depend_app(app_cls, http_cls)
+#     assert not smell_platform_depend_app(app_cls, http_cls)
+#     assert not smell_platform_depend_app(http_cls, log_cls)
+#     assert not smell_platform_depend_app(app_cls, page_cls)

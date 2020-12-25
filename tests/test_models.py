@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from refactorguide.models import Class, Dependency, grouped_by_modules_and_packages, update_class_logic_packages
+from refactorguide.models import Class, Dependency, grouped_by_modules_and_packages, update_class_logic_packages, \
+    hierachy
 
 
 def test_grouped_by_modules_and_packages():
@@ -60,3 +61,19 @@ def test_update_class_logic_packages():
     assert cls.dependencies[0].package == 'info.qinyu.biz'
     assert cls.usages[0].package == 'info.qinyu'
     assert cls.usages[1].package == 'info.qinyu.biz'
+
+
+def test_hierachy():
+    _hierachy = hierachy([
+        Class(path="", name="Class1", raw_package="a.first.package", module="a"),
+        Class(path="", name="Class2", raw_package="b.first.package", module="b"),
+        Class(path="", name="Class3", raw_package="b.second.package", module="b")])
+
+    assert list(_hierachy.keys()) == ['a', 'b']
+    assert _hierachy['a']['a.first.package'].name == 'a.first.package'
+    assert _hierachy['a']['a.first.package']['Class1'].name == 'Class1'
+
+    assert _hierachy['b']['b.first.package'].name == 'b.first.package'
+    assert _hierachy['b']['b.second.package'].name == 'b.second.package'
+    assert _hierachy['b']['b.first.package']['Class2'].name == 'Class2'
+    assert _hierachy['b']['b.second.package']['Class3'].name == 'Class3'

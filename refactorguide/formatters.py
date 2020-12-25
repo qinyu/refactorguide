@@ -1,11 +1,11 @@
 # coding=utf-8
 
 from typing import Dict, List
-from refactorguide.models import Class, Package
+from refactorguide.models import Class, Component
 
 
-pd_format = """
-# 包：{}
+component_header_format = """
+# {}：{}
 ================================================================================
 一共有依赖 {} 项，坏味道依赖 {} 项
 一共有调用 {} 处，坏味道调用 {} 处
@@ -19,7 +19,7 @@ pd_format = """
 """
 
 
-def package_description(pkg: Package, top=3, oneline_format="{full_name}") -> str:
+def component_header(pkg: Component, top=3, oneline_format="{full_name}") -> str:
 
     def _percenet(sub, total):
         return '{:.2%}'.format(sub/total if total > 0 else 0)
@@ -36,7 +36,8 @@ def package_description(pkg: Package, top=3, oneline_format="{full_name}") -> st
     top_smell_usages_classes = smell_usages_classes[:top]
     top_smell_usages_count = len(
         set([d for c in top_smell_usages_classes for d in c.smell_usages]))
-    return pd_format.format(
+    return component_header_format.format(
+        type(pkg).__name__,
         pkg.name,
         len(pkg.dependencies),
         smell_dependencies_count,
@@ -59,7 +60,7 @@ def package_description(pkg: Package, top=3, oneline_format="{full_name}") -> st
     )
 
 
-cd_format = """
+class_header_format = """
 # 类：{}
 ================================================================================
 一共有依赖 {} 项，坏味道依赖 {} 项
@@ -68,10 +69,10 @@ cd_format = """
 """
 
 
-def class_description(cls: Class) -> str:
+def class_header(cls: Class) -> str:
     smell_dependencies_count = len(cls.smell_dependencies)
     smell_usages_count = len(cls.smell_usages)
-    return cd_format.format(
+    return class_header_format.format(
         cls.full_name,
         len(cls.dependencies),
         smell_dependencies_count,
@@ -85,7 +86,7 @@ def deps_format(dependencies: List[Class], oneline_format: str, join_str: str, e
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
-def dependencies_tree_description(module_dict: Dict[str, Dict[str, Class]], oneline_format="{full_name}") -> str:
+def dependencies_tree(module_dict: Dict[str, Dict[str, Class]], oneline_format="{full_name}") -> str:
     _str = ""
 
     for m, pkgs in module_dict.items():

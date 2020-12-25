@@ -1,5 +1,4 @@
-from refactorguide.models import Class, Dependency, Package, grouped_by_modules_and_packages, \
-    update_class_logic_packages
+from refactorguide.models import Class, Dependency, hierachy, update_class_logic_packages
 import re
 import xml.etree.ElementTree as ET
 
@@ -100,10 +99,4 @@ def read_file(idea_dep_file_path, logic_pacakges):
     all_classes = [c for c in all_classes if c]
     update_class_logic_packages(all_classes, logic_pacakges)
     update_idea_class_usages(all_classes)
-
-    module_dict = grouped_by_modules_and_packages(all_classes)
-    for m, package_dict in module_dict.items():
-        for p, p_cls_list in package_dict.items():
-            package_dict[p] = Package(m, p, p_cls_list)
-
-    return module_dict
+    return hierachy(all_classes)

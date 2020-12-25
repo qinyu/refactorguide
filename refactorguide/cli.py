@@ -8,8 +8,7 @@ import os
 import time
 
 import refactorguide.input_idea as input_idea
-from refactorguide.smells import SmellDependencyCrossModule, SmellDependencyCrossPackage, SmellCylicDependency, \
-    find_smells
+from refactorguide.smells import find_smells
 
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
@@ -62,10 +61,6 @@ def main() -> None:
 
     module_dict = parsers[args.parser](args.index, desgin.LOGIC_PACKAGES)
 
-    if len(desgin.SMELLS) == 0:
-        desgin.set_smells([SmellDependencyCrossModule(),
-                           SmellDependencyCrossPackage(),
-                           SmellCylicDependency()])
     find_smells(module_dict, desgin.SMELLS)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())

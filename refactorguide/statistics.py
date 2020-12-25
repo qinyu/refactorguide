@@ -1,4 +1,8 @@
-def console_statistics_data(module_dict):
+from refactorguide.models import Module
+from typing import Dict
+
+
+def console_statistics_data(module_dict: Dict[str, Module]):
     total_smell = {}
     total_module = 0
     total_package = 0
@@ -12,9 +16,9 @@ def console_statistics_data(module_dict):
     all_package_list = []
     all_classes_list = []
 
-    for m, pkg_dict in module_dict.items():
+    for pkg_dict in module_dict.values():
         total_module += 1
-        for p, pkg in pkg_dict.items():
+        for pkg in pkg_dict.items():
             if(pkg not in all_package_list):
                 all_package_list.append(pkg)
             total_package += 1
@@ -89,9 +93,9 @@ def print_top_classes(all_classes_list):
 statistics_format = '''
 Statistics:
 
-模块：{}  包：{}  类文件：{}   
-依赖数量：{}   引用数量：{}  
-可疑依赖数量：{}   可疑引用数量：{}  
+模块：{}  包：{}  类文件：{}
+依赖数量：{}   引用数量：{}
+可疑依赖数量：{}   可疑引用数量：{}
 '''
 rule_format = '''BasSmell-{}：{} '''
 
