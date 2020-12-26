@@ -1,38 +1,38 @@
 
 # coding=utf-8
 
-from typing import Dict
 from refactorguide.tools import write_file
-from refactorguide.models import Module, grouped_by_modules_and_packages
+from refactorguide.models import Hierarchy, group_class_by_module_package
 
 
-def write_files(report_dir, module_dict: Dict[str, Module]):
+def write_files(report_dir, hierarchy: Hierarchy):
     # dt = time.strftime("%Y-%m-%d_%H-%M", time.localtime())
-    for m, module in module_dict.items():
-        # build plantuml head
-        print("start print "+m+"to uml")
-        for pkg in module.packages:
-            uml = "@startuml \n\n"
-            group_classes = []
-            group_dict = {}
-            for file in pkg.classes:
-                group_classes += file.smell_dependencies
-                group_classes += file.smell_usages
+    for layer in hierarchy.layers:
+        for module in layer.modules:
             # build plantuml head
-            group_dict = grouped_by_modules_and_packages(
-                pkg.classes+group_classes)
-            uml += "".join([get_plant_head(m, group_pkg_dict)
-                            for group_m, group_pkg_dict in group_dict.items()])
+            print("start print "+module.name+"to uml")
+            for package in module.packages:
+                uml = "@startuml \n\n"
+                group_classes = []
+                group_dict = {}
+                for cls in package.classes:
+                    group_classes += cls.smell_dependencies
+                    group_classes += cls.smell_usages
+                # build plantuml head
+                group_dict = group_class_by_module_package(
+                    package.classes+group_classes)
+                uml += "".join([get_plant_head(module.name, group_pkg_dict)
+                                for group_m, group_pkg_dict in group_dict.items()])
 
-            for file in pkg.classes:
-                # build plantuml relation
-                uml += get_plant_relation(file,
-                                          file.smell_dependencies, False)
-                uml += get_plant_relation(file, file.smell_usages, True)
-            uml += "\n@enduml"
-            write_file(report_dir+"/" + m + "/" +
-                       pkg.name+"/", pkg.name+".puml", uml)
-        print("end print "+m+"to uml")
+                for cls in package.classes:
+                    # build plantuml relation
+                    uml += get_plant_relation(cls,
+                                              cls.smell_dependencies, False)
+                    uml += get_plant_relation(cls, cls.smell_usages, True)
+                uml += "\n@enduml"
+                write_file(report_dir+"/" + module.name + "/" +
+                           package.name+"/", package.name+".puml", uml)
+            print("end print "+module.name+"to uml")
 
 
 def get_plant_head(module_name, pkg_dict):

@@ -1,5 +1,6 @@
 """Console script for refactorguide."""
 import argparse
+from refactorguide.hierachy import build_hierachy
 import refactorguide
 import sys
 
@@ -59,13 +60,14 @@ def main() -> None:
     args = init_argparse().parse_args()
     load_design_file(args.design, generate_example=True)
 
-    module_dict = parsers[args.parser](args.index, desgin.LOGIC_PACKAGES)
+    hierarchy = build_hierachy(parsers[args.parser](args.index),
+                               desgin.LAYERS, desgin.LOGIC_PACKAGES)
 
-    find_smells(module_dict, desgin.SMELLS)
+    find_smells(hierarchy, desgin.SMELLS)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for o in args.outputs:
-        outputs[o](os.path.join("report-"+dt, o), module_dict)
+        outputs[o](os.path.join("report-"+dt, o), hierarchy)
 
 
 if __name__ == "__main__":

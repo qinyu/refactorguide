@@ -1,8 +1,7 @@
-from refactorguide.models import Module
-from typing import Dict
+from refactorguide.models import Hierarchy
 
 
-def console_statistics_data(module_dict: Dict[str, Module]):
+def console_statistics_data(hierarchy: Hierarchy):
     total_smell = {}
     total_module = 0
     total_package = 0
@@ -16,27 +15,28 @@ def console_statistics_data(module_dict: Dict[str, Module]):
     all_package_list = []
     all_classes_list = []
 
-    for pkg_dict in module_dict.values():
-        total_module += 1
-        for pkg in pkg_dict.items():
-            if(pkg not in all_package_list):
-                all_package_list.append(pkg)
-            total_package += 1
-            total_class += len(pkg.classes)
-            total_dependencies += len(pkg.dependencies)
-            total_usages += len(pkg.usages)
-            total_smell_dependencies += len(pkg.smell_dependencies)
-            total_smell_usages += len(pkg.smell_usages)
-            for file in pkg.classes:
-                if(file not in all_classes_list):
-                    all_classes_list.append(file)
-                for d in file.dependencies:
-                    for s in d.bad_smells:
-                        if(s not in total_smell.keys()):
-                            total_smell.setdefault(s)
-                            total_smell[s] = 1
-                        else:
-                            total_smell[s] += 1
+    for layer in hierarchy.layers:
+        for module in layer.modules:
+            total_module += 1
+            for pkg in module.packages:
+                if(pkg not in all_package_list):
+                    all_package_list.append(pkg)
+                total_package += 1
+                total_class += len(pkg.classes)
+                total_dependencies += len(pkg.dependencies)
+                total_usages += len(pkg.usages)
+                total_smell_dependencies += len(pkg.smell_dependencies)
+                total_smell_usages += len(pkg.smell_usages)
+                for file in pkg.classes:
+                    if(file not in all_classes_list):
+                        all_classes_list.append(file)
+                    for d in file.dependencies:
+                        for s in d.bad_smells:
+                            if(s not in total_smell.keys()):
+                                total_smell.setdefault(s)
+                                total_smell[s] = 1
+                            else:
+                                total_smell[s] += 1
     # 输出整体统计数据
     print(statistics_format.format(total_module, total_package, total_class,
                                    total_dependencies, total_usages, total_smell_dependencies, total_smell_usages))
@@ -77,7 +77,7 @@ def print_top_classes(all_classes_list):
     print("\n"+"依赖数量Top 10 类:")
     for i in range(0, 10):
         file = sort_dep_classes_list[i]
-        print(c_format.format(file.name, file.raw_package,
+        print(c_format.format(file.name, file.package,
                               file.module, len(file.smell_dependencies)))
 
     sort_usages_classes_list = sorted(
@@ -86,7 +86,7 @@ def print_top_classes(all_classes_list):
     print("\n"+"被引用数量Top 10 类:")
     for i in range(0, 10):
         file = sort_usages_classes_list[i]
-        print(c_format.format(file.name, file.raw_package,
+        print(c_format.format(file.name, file.package,
                               file.module, len(file.smell_usages)))
 
 

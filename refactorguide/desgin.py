@@ -2,6 +2,9 @@
 
 from refactorguide.smells import SmellCylicDependency, SmellDependencyCrossModule, SmellDependencyCrossPackage
 
+global LAYER_UNKNOWN
+LAYER_UNKNOWN = 'unknown'
+
 
 def set_layers(layers):
     global LAYERS
