@@ -30,16 +30,7 @@ class Component(metaclass=ABCMeta):
         return [u for u in self.usages if u.has_smell]
 
 
-class Container(Component, metaclass=ABCMeta):
-    @property
-    @abstractmethod
-    def classes(self):
-        pass
-
-    @property
-    @abstractmethod
-    def children(self):
-        pass
+class ComponentList(Component, metaclass=ABCMeta):
 
     @property
     def dependencies(self):
@@ -54,29 +45,26 @@ class Container(Component, metaclass=ABCMeta):
         self.name = name
         self.parent = parent
 
+    @property
+    def items(self) -> List[Component]:
+        return self._items
 
-class ComposableContainer(Container):
+    @items.setter
+    def items(self, items: List[Component]):
+        self._items = sorted(items, key=attrgetter("name"))
+
+    def __getitem__(self, key: str) -> Component:
+        return next((p for p in self._items if p.name == key), None)
+
+    def __setitem__(self, key: str, component: Component):
+        finded = self.__getitem__(key)
+        if not finded:
+            self._items.append(component)
+            self._items = sorted(self._items, key=attrgetter("name"))
 
     @property
     def classes(self):
-        return [c for p in self.children for c in p.classes]
-
-    @property
-    def children(self) -> List[Container]:
-        return self._children
-
-    @children.setter
-    def children(self, children: List[Container]):
-        self._children = sorted(children, key=attrgetter("name"))
-
-    def __getitem__(self, key: str) -> Container:
-        return next((p for p in self._children if p.name == key), None)
-
-    def __setitem__(self, key: str, container: Container):
-        finded = self.__getitem__(key)
-        if not finded:
-            self._children.append(container)
-            self._children = sorted(self._children, key=attrgetter("name"))
+        return [c for p in self.items for c in p.classes]
 
 
 class ClassInfo(object):
@@ -178,7 +166,7 @@ class Dependency(ClassInfo):
         return hash(self.path)
 
 
-class Package(Container):
+class Package(ComponentList):
 
     def __init__(self, name, module, classes, layer=None):
         self.classes = classes
@@ -202,36 +190,25 @@ class Package(Container):
         self._classes = sorted(classes, key=sorter)
 
     @property
-    def children(self):
+    def items(self):
         return self._classes
 
+    @items.setter
+    def items(self, items):
+        self._classes = items
+
     def __getitem__(self, key: str) -> Class:
-        # TODO use logic name?
         return next((c for c in self._classes if c.full_name[len(self.package)+1:] == key), None)
-
-    def __setitem__(self, key: str, cls: Class):
-        found = self.__getitem__(key)
-        if not found:
-            self._classes.append(cls)
-            # TODO use logic name?
-            self._classes = sorted(self._classes, key=attrgetter("name"))
-
-    # @property
-    # def full_name(self):
-    #     return self.name
 
     def oneline_str(self, template):
         return template.format(**self.all_attributes)
 
     @property
     def all_attributes(self):
-        return dict(vars(self), full_name=self.name, module=self.parent)
-
-    # def wildcards_search(self, wd: str):
-        # return [c for c in self.classes if fnmatch.fnmatch(c.name, wd)] if wd else self.classes
+        return dict(vars(self), full_name=self.name, module=self.module)
 
 
-class Module(ComposableContainer):
+class Module(ComponentList):
 
     def __init__(self, name: str, layer: str, packages: List[Package]):
         self.packages = packages
@@ -247,14 +224,14 @@ class Module(ComposableContainer):
 
     @property
     def packages(self) -> List[Package]:
-        return self.children
+        return self.items
 
     @packages.setter
-    def packages(self, containers: List[Package]):
-        self.children = containers
+    def packages(self, packages: List[Package]):
+        self.items = packages
 
 
-class Layer(ComposableContainer):
+class Layer(ComponentList):
 
     def __init__(self, name: str, modules: List[Module]):
         self.modules = modules
@@ -262,26 +239,30 @@ class Layer(ComposableContainer):
 
     @property
     def modules(self) -> List[Module]:
-        return self.children
+        return self.items
 
     @modules.setter
     def modules(self, modules: List[Module]):
-        self.children = modules
+        self.items = modules
 
     @property
     def layer(self):
         return self.name
 
 
-class Hierarchy(ComposableContainer):
+class Hierarchy(ComponentList):
 
     def __init__(self, layers):
         super().__init__('Hierarchy')
-        self.children = layers
+        self.items = layers
 
     @property
     def layers(self) -> List[Layer]:
-        return self.children
+        return self.items
+
+    @layers.setter
+    def layers(self, layers: List[Layer]):
+        self.items = layers
 
 
 def group_class_by_module_package(classes: List[Class]) -> Dict[str, Dict[str, Class]]:
@@ -295,18 +276,3 @@ def group_class_by_module_package(classes: List[Class]) -> Dict[str, Dict[str, C
 
         module_dict[m] = package_dict
     return module_dict
-
-
-# def update_class_logic_packages(class_list: List[Class], logic_pacakges: Dict[str, List[str]]):
-#     """Update class' own packge and all its depenedencies' packages and usages' packages"""
-#     def update(cls):
-#         for logic_package in logic_pacakges.get(cls.module, []):
-#             if cls.package.startswith(logic_package):
-#                 cls.package = logic_package
-#                 break
-#         return cls
-
-#     for cls in class_list:
-#         update(cls)
-#         cls.dependencies = [update(d) for d in cls.dependencies]
-#         cls.usages = [update(u) for u in cls.usages]
