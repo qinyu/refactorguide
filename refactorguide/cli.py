@@ -14,7 +14,7 @@ from refactorguide.smells import find_smells
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
 
-import refactorguide.desgin as desgin
+import refactorguide.desgin as design
 
 
 outputs = {
@@ -61,9 +61,9 @@ def main() -> None:
     load_design_file(args.design, generate_example=True)
 
     hierarchy = build_hierachy(parsers[args.parser](args.index),
-                               desgin.LAYERS, desgin.LOGIC_PACKAGES)
+                               design.LAYERS, design.LOGIC_PACKAGES)
 
-    find_smells(hierarchy, desgin.SMELLS)
+    find_smells(hierarchy, design.SMELLS)
 
     dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for o in args.outputs:

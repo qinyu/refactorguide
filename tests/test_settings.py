@@ -1,4 +1,4 @@
-import refactorguide.desgin as desgin
+import refactorguide.desgin as design
 from refactorguide.smells import SmellCylicDependency, SmellDependencyCrossModule, SmellDependencyCrossPackage
 
 platform = [
@@ -18,12 +18,12 @@ layers = {
 
 
 def test_default_values():
-    assert desgin.LAYERS == {}
-    assert desgin.LOGIC_PACKAGES == {}
-    assert [type(s) for s in desgin.SMELLS] == [
+    assert design.LAYERS == {}
+    assert design.LOGIC_PACKAGES == {}
+    assert [type(s) for s in design.SMELLS] == [
         SmellDependencyCrossModule, SmellDependencyCrossPackage, SmellCylicDependency]
 
 
 def test_set_layers():
-    desgin.set_layers(layers)
-    assert desgin.LAYERS == layers
+    design.set_layers(layers)
+    assert design.LAYERS == layers
