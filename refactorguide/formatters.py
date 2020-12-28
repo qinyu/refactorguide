@@ -86,7 +86,7 @@ def deps_format(dependencies: List[Class], oneline_format: str, join_str: str, e
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
-def dependencies_tree(module_dict: Dict[str, Dict[str, Class]], oneline_format="{full_name}") -> str:
+def dependencies_tree(module_dict: Dict[str, Dict[str, List[Class]]], oneline_format="{full_name}") -> str:
     _str = ""
 
     for m, pkgs in module_dict.items():

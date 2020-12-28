@@ -13,7 +13,6 @@ sys.path.append('../')
 
 def main() -> None:
     load_design_file("example/design.ini")
-    print(os.getcwd())
 
     hierarchy = build_hierachy(input_idea.read_file("example/index.xml"),
                                design.LAYERS, design.LOGIC_PACKAGES)
