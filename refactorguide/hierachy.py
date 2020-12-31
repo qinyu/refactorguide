@@ -1,4 +1,5 @@
 import fnmatch
+from refactorguide.statistics import print_top_package
 from refactorguide.desgin import LAYER_UNKNOWN
 from typing import Dict, List
 from refactorguide.models import Class, Component, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
@@ -149,8 +150,10 @@ def add_to(component: Component, container: ComponentList):
         if container.item_type == type(component):
             container[item_key] = component
         else:
-            container[item_key] = add_to(component, container.item_type(
-                item_key, list(), **component.hierarchy_path))
+            container[item_key] = container.item_type(
+                item_key, list(), **component.hierarchy_path)
+            add_to(component, container[item_key])
+
     return container
 
 
@@ -159,14 +162,35 @@ def remove_from(component: Component, container: ComponentList):
     item_key = component.hierarchy_path.get(item_type_name, None)
     if item_key:
         if container.item_type == type(component):
+            print([item.name for item in container.items])
+            print("-del:" + item_key)
             del container[item_key]
+            print([item.name for item in container.items])
+
         else:
             item = container[item_key]
             if item:
                 remove_from(component, item)
                 if not item.items:
+                    print("-del empty:" + item_key)
                     del container[item_key]
     return container
+
+
+def filter_hierarchy(container: ComponentList, path_pattern_dict: Dict[str, str], hierarchy: Hierarchy):
+    item_type_name = container.item_type.__name__.lower()
+    item_path_pattern = path_pattern_dict.get(item_type_name, None)
+    items = container.find_items(
+        item_path_pattern) if item_path_pattern else container.items
+
+    if issubclass(container.item_type, ComponentList):
+        for item in items:
+            filter_hierarchy(item, path_pattern_dict, hierarchy)
+    else:
+        for item in items:
+            add_to(item, hierarchy)
+
+    return hierarchy
 
 
 def build_hierachy(classes: List[Class],

@@ -1,7 +1,7 @@
 
 from refactorguide.desgin import LAYER_UNKNOWN
 from refactorguide.models import Class, Hierarchy
-from refactorguide.hierachy import add_to, build_hierachy, remove_from
+from refactorguide.hierachy import add_to, build_hierachy, filter_hierarchy, remove_from
 
 classes = [Class(path="", full_name="a.package.Class1",
                  package="a.package", module="a"),
@@ -106,30 +106,90 @@ def test_build_hierarchy_with_specified_pacakge():
 
 
 def test_add_to_hierarchy():
-    cls = Class("", "apackage.Class", "apackage", "amodule", "alayer")
+    cls = Class("class/path", "apackage.Class",
+                "apackage", "amodule", "alayer")
+    other_cls = Class("other/class/path", "apackage.OtherClass",
+                      "apackage", "amodule", "alayer")
 
-    hierachy = add_to(cls, Hierarchy())
-    assert hierachy['alayer']['amodule']['apackage']['Class'] == cls
+    hierarchy = add_to(cls, Hierarchy())
+    hierarchy = add_to(other_cls, hierarchy)
+
+    assert hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
 
 
 def test_remove_from_hierarchy():
-    cls = Class("", "apackage.Class", "apackage", "amodule", "alayer")
+    cls = Class("class/path", "apackage.Class",
+                "apackage", "amodule", "alayer")
+    other_cls = Class("other/class/path", "apackage.OtherClass",
+                      "apackage", "amodule", "alayer")
 
-    hierachy = add_to(cls, Hierarchy())
-    remove_from(cls, hierachy)
-    assert not hierachy.layers
+    hierarchy = add_to(cls, Hierarchy())
+    hierarchy = add_to(other_cls, hierarchy)
 
-    hierachy = add_to(cls, hierachy)
-    remove_from(hierachy['alayer']['amodule']['apackage'], hierachy)
-    assert not hierachy.layers
+    remove_from(other_cls, hierarchy)
+    assert hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert hierarchy['alayer']['amodule']['apackage']['OtherClass'] == None
 
-    hierachy = add_to(cls, hierachy)
-    remove_from(hierachy['alayer']['amodule'], hierachy)
-    assert not hierachy.layers
+    hierarchy = add_to(other_cls, hierarchy)
+    remove_from(hierarchy['alayer']['amodule']['apackage'], hierarchy)
+    assert not hierarchy.layers
 
-    hierachy = add_to(cls, hierachy)
-    remove_from(hierachy['alayer'], hierachy)
-    assert not hierachy.layers
+    hierarchy = add_to(cls, hierarchy)
+    remove_from(hierarchy['alayer']['amodule'], hierarchy)
+    assert not hierarchy.layers
+
+    hierarchy = add_to(cls, hierarchy)
+    remove_from(hierarchy['alayer'], hierarchy)
+    assert not hierarchy.layers
+
+
+def test_filter_hierarchy():
+    cls = Class("class/path", "apackage.Class",
+                "apackage", "amodule", "alayer")
+    other_cls = Class("other/class/path", "apackage.OtherClass",
+                      "apackage", "amodule", "alayer")
+
+    hierarchy = add_to(cls, Hierarchy())
+    hierarchy = add_to(other_cls, hierarchy)
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "alayer"}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "a*"}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "b*"}, Hierarchy())
+    assert not filtered_hierarchy.items
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "alayer", "package": "apackage"}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "alayer", "package": "a*"}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "a*", "package": "apackage"}, Hierarchy())
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['Class'] == cls
+    assert filtered_hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
+
+    filtered_hierarchy = filter_hierarchy(
+        hierarchy, {"layer": "alayer", "package": "b*"}, Hierarchy())
+    assert not filtered_hierarchy.items
 
 
 def assert_all_in_unknown_layer_and_original_package(hierachy):

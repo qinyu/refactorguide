@@ -74,8 +74,13 @@ class ComponentList(Component, metaclass=ABCMeta):
 
     def __delitem__(self, key):
         found = self.__getitem__(key)
+        print("__delitem__:"+key)
+        print("__delitem__:"+found.name)
         if found:
             self._items.remove(found)
+
+    def find_items(self, wildcards):
+        return [p for p in self._items if fnmatch.fnmatch(p.name, wildcards)]
 
     @property
     def classes(self):
@@ -111,9 +116,13 @@ class ClassInfo(object):
         all_attrs['class'] = all_attrs['name']
         return all_attrs
 
+    @property
+    def hierarchy_path(self):
+        return {'layer': self.layer, 'module': self.module, 'package': self.package, 'class': self.name}
+
     def wildcards_macth(self, **kwargs):
         for attr_name, wildcards in kwargs.items():
-            if not fnmatch.fnmatch(self.all_attributes.get(attr_name), wildcards):
+            if not fnmatch.fnmatch(self.hierarchy_path.get(attr_name), wildcards):
                 return False
         return True
 
@@ -154,10 +163,6 @@ class Class(ClassInfo, Component):
     @usages.setter
     def usages(self, usages):
         self._usages = sorted(usages, key=sorter)
-
-    @property
-    def hierarchy_path(self):
-        return {'layer': self.layer, 'module': self.module, 'package': self.package, 'class': self.name}
 
 
 class Dependency(ClassInfo):
