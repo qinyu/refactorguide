@@ -1,7 +1,7 @@
 import fnmatch
 from refactorguide.desgin import LAYER_UNKNOWN
 from typing import Dict, List
-from refactorguide.models import Class, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
+from refactorguide.models import Class, Component, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
     group_class_by_module_package
 
 
@@ -9,7 +9,7 @@ def __build_module(layer_name: str,
                    module_name: str,
                    grouped_classes: Dict[str, List[Class]],
                    desired_packages: List[str]):
-    module = Module(module_name, layer_name,  [])
+    module = Module(module_name, list(), layer_name)
     for package_name, classes in grouped_classes.items():
         desired_package_name = next((p for p in desired_packages if package_name.startswith(p)),
                                     package_name)
@@ -18,7 +18,7 @@ def __build_module(layer_name: str,
             package.classes = package.classes + classes  # sort
         else:
             module[desired_package_name] = Package(
-                desired_package_name, module.name, classes)
+                desired_package_name, classes, module.name)
     return module
 
 
@@ -71,10 +71,12 @@ def __recursive_seperate_items(wildcards,
             if final_match_child_items:
                 component_list_parent = new_parent if new_parent else match_item.parent
                 final_match_items.append(
-                    component_list_type(match_item.name, component_list_parent, final_match_child_items))
+                    component_list_type(match_item.name,
+                                        final_match_child_items, component_list_parent))
             if final_unmatch_child_items:
                 final_unmatch_items.append(
-                    component_list_type(match_item.name, match_item.parent, final_unmatch_child_items))
+                    component_list_type(match_item.name,
+                                        final_unmatch_child_items, match_item.parent))
     return final_match_items, final_unmatch_items
 
 
@@ -138,6 +140,33 @@ def missing_wildcards(wildcards_dict):
         return True
 
     return False
+
+
+def add_to(component: Component, container: ComponentList):
+    item_type_name = container.item_type.__name__.lower()
+    item_key = component.hierarchy_path.get(item_type_name, None)
+    if item_key:
+        if container.item_type == type(component):
+            container[item_key] = component
+        else:
+            container[item_key] = add_to(component, container.item_type(
+                item_key, list(), **component.hierarchy_path))
+    return container
+
+
+def remove_from(component: Component, container: ComponentList):
+    item_type_name = container.item_type.__name__.lower()
+    item_key = component.hierarchy_path.get(item_type_name, None)
+    if item_key:
+        if container.item_type == type(component):
+            del container[item_key]
+        else:
+            item = container[item_key]
+            if item:
+                remove_from(component, item)
+                if not item.items:
+                    del container[item_key]
+    return container
 
 
 def build_hierachy(classes: List[Class],

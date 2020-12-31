@@ -29,8 +29,18 @@ class Component(metaclass=ABCMeta):
     def smell_usages(self):
         return [u for u in self.usages if u.has_smell]
 
+    @property
+    @abstractmethod
+    def hierarchy_path(self) -> Dict[str, str]:
+        pass
+
 
 class ComponentList(Component, metaclass=ABCMeta):
+
+    @property
+    @abstractmethod
+    def item_type(self):
+        pass
 
     @property
     def dependencies(self):
@@ -57,10 +67,15 @@ class ComponentList(Component, metaclass=ABCMeta):
         return next((p for p in self._items if p.name == key), None)
 
     def __setitem__(self, key: str, component: Component):
-        finded = self.__getitem__(key)
-        if not finded:
+        found = self.__getitem__(key)
+        if not found:
             self._items.append(component)
             self._items = sorted(self._items, key=attrgetter("name"))
+
+    def __delitem__(self, key):
+        found = self.__getitem__(key)
+        if found:
+            self._items.remove(found)
 
     @property
     def classes(self):
@@ -140,6 +155,10 @@ class Class(ClassInfo, Component):
     def usages(self, usages):
         self._usages = sorted(usages, key=sorter)
 
+    @property
+    def hierarchy_path(self):
+        return {'layer': self.layer, 'module': self.module, 'package': self.package, 'class': self.name}
+
 
 class Dependency(ClassInfo):
     def __init__(self, path, full_name, package, module, layer, category):
@@ -168,10 +187,14 @@ class Dependency(ClassInfo):
 
 class Package(ComponentList):
 
-    def __init__(self, name, module, classes, layer=None):
+    def __init__(self, name, classes=list(), module=None, layer=None, **_):
         self.classes = classes
         super().__init__(name, parent=module)
         self.layer = layer
+
+    @property
+    def item_type(self):
+        return Class
 
     @property
     def module(self):
@@ -183,22 +206,14 @@ class Package(ComponentList):
 
     @property
     def classes(self) -> List[Class]:
-        return self._classes
+        return self.items
 
     @classes.setter
     def classes(self, classes):
-        self._classes = sorted(classes, key=sorter)
-
-    @property
-    def items(self):
-        return self._classes
-
-    @items.setter
-    def items(self, items):
-        self._classes = items
+        self.items = sorted(classes, key=sorter)
 
     def __getitem__(self, key: str) -> Class:
-        return next((c for c in self._classes if c.full_name[len(self.package)+1:] == key), None)
+        return next((c for c in self._items if c.full_name[len(self.package)+1:] == key), None)
 
     def oneline_str(self, template):
         return template.format(**self.all_attributes)
@@ -207,12 +222,20 @@ class Package(ComponentList):
     def all_attributes(self):
         return dict(vars(self), full_name=self.name, module=self.module)
 
+    @property
+    def hierarchy_path(self):
+        return {'layer': self.layer, 'module': self.module, 'package': self.package}
+
 
 class Module(ComponentList):
 
-    def __init__(self, name: str, layer: str, packages: List[Package]):
+    def __init__(self, name: str, packages: List[Package] = list(), layer: str = None, **_):
         self.packages = packages
         super().__init__(name, parent=layer)
+
+    @property
+    def item_type(self):
+        return Package
 
     @property
     def module(self):
@@ -230,12 +253,20 @@ class Module(ComponentList):
     def packages(self, packages: List[Package]):
         self.items = packages
 
+    @property
+    def hierarchy_path(self):
+        return {'layer': self.layer, 'module': self.module, }
+
 
 class Layer(ComponentList):
 
-    def __init__(self, name: str, modules: List[Module]):
+    def __init__(self, name: str, modules: List[Module] = list(), **kwargs):
         self.modules = modules
         super().__init__(name)
+
+    @property
+    def item_type(self):
+        return Module
 
     @property
     def modules(self) -> List[Module]:
@@ -249,12 +280,20 @@ class Layer(ComponentList):
     def layer(self):
         return self.name
 
+    @property
+    def hierarchy_path(self):
+        return {'layer': self.layer}
+
 
 class Hierarchy(ComponentList):
 
-    def __init__(self, layers):
+    def __init__(self, layers: List[Layer] = list(), **_):
         super().__init__('Hierarchy')
         self.items = layers
+
+    @property
+    def item_type(self):
+        return Layer
 
     @property
     def layers(self) -> List[Layer]:
@@ -263,6 +302,10 @@ class Hierarchy(ComponentList):
     @layers.setter
     def layers(self, layers: List[Layer]):
         self.items = layers
+
+    @property
+    def hierarchy_path(self):
+        return None
 
 
 def group_class_by_module_package(classes: List[Class]) -> Dict[str, Dict[str, Class]]:

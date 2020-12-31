@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from refactorguide.models import Class, group_class_by_module_package
+from refactorguide.models import Class, Layer, group_class_by_module_package
 
 
 def test_grouped_by_modules_and_packages():
@@ -41,3 +41,9 @@ def test_grouped_by_modules_and_packages():
     assert list(sort_by_class['same.module'].keys()) == ['same.package']
     assert list([c.name for c in sort_by_class['same.module']
                  ['same.package']]) == ['Class1', 'Class2']
+
+
+def test_layer():
+    t = Layer
+    assert t("test", list(), **{'layer': 'alayer',
+                                'module': 'amodule', 'package': 'apackge'}).name == "test"

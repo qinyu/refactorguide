@@ -1,7 +1,7 @@
 
 from refactorguide.desgin import LAYER_UNKNOWN
-from refactorguide.models import Class
-from refactorguide.hierachy import build_hierachy
+from refactorguide.models import Class, Hierarchy
+from refactorguide.hierachy import add_to, build_hierachy, remove_from
 
 classes = [Class(path="", full_name="a.package.Class1",
                  package="a.package", module="a"),
@@ -103,6 +103,33 @@ def test_build_hierarchy_with_specified_pacakge():
     assert hierachy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].name == 'Class3'
     assert hierachy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].package == 'b.package.subpackage2'
     assert hierachy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].full_name == 'b.package.subpackage2.Class3'
+
+
+def test_add_to_hierarchy():
+    cls = Class("", "apackage.Class", "apackage", "amodule", "alayer")
+
+    hierachy = add_to(cls, Hierarchy())
+    assert hierachy['alayer']['amodule']['apackage']['Class'] == cls
+
+
+def test_remove_from_hierarchy():
+    cls = Class("", "apackage.Class", "apackage", "amodule", "alayer")
+
+    hierachy = add_to(cls, Hierarchy())
+    remove_from(cls, hierachy)
+    assert not hierachy.layers
+
+    hierachy = add_to(cls, hierachy)
+    remove_from(hierachy['alayer']['amodule']['apackage'], hierachy)
+    assert not hierachy.layers
+
+    hierachy = add_to(cls, hierachy)
+    remove_from(hierachy['alayer']['amodule'], hierachy)
+    assert not hierachy.layers
+
+    hierachy = add_to(cls, hierachy)
+    remove_from(hierachy['alayer'], hierachy)
+    assert not hierachy.layers
 
 
 def assert_all_in_unknown_layer_and_original_package(hierachy):
