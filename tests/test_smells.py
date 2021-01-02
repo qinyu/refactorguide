@@ -1,5 +1,5 @@
 
-from refactorguide.hierachy import build_hierachy
+from refactorguide.hierarchy import build_hierarchy
 import pytest
 from refactorguide.smells import SmellLayerDependency
 from refactorguide.models import Class
@@ -35,8 +35,8 @@ unknown_cls = Class(path='3rdparty/src/main/org/junit/Test.java',
 @pytest.fixture()
 def setup_layers():
     design.set_layers(layers)
-    build_hierachy([http_cls, app_cls, log_cls,
-                    page_cls, unknown_cls], layers, {})
+    build_hierarchy([http_cls, app_cls, log_cls,
+                     page_cls, unknown_cls], layers, {})
 
 
 def test_is_in_layer(setup_layers):

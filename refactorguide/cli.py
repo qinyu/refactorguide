@@ -1,6 +1,6 @@
 """Console script for refactorguide."""
 import argparse
-from refactorguide.hierachy import build_hierachy
+from refactorguide.hierarchy import build_hierarchy
 import refactorguide
 import sys
 
@@ -60,8 +60,8 @@ def main() -> None:
     args = init_argparse().parse_args()
     load_design_file(args.design, generate_example=True)
 
-    hierarchy = build_hierachy(parsers[args.parser](args.index),
-                               design.LAYERS, design.LOGIC_PACKAGES)
+    hierarchy = build_hierarchy(parsers[args.parser](args.index),
+                                design.LAYERS, design.LOGIC_PACKAGES)
 
     find_smells(hierarchy, design.SMELLS)
 

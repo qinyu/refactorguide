@@ -1,5 +1,4 @@
 import fnmatch
-from refactorguide.statistics import print_top_package
 from refactorguide.desgin import LAYER_UNKNOWN
 from typing import Dict, List
 from refactorguide.models import Class, Component, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
@@ -193,9 +192,9 @@ def filter_hierarchy(container: ComponentList, path_pattern_dict: Dict[str, str]
     return hierarchy
 
 
-def build_hierachy(classes: List[Class],
-                   layer_designs: Dict[str, List[Dict[str, str]]],
-                   package_design: Dict[str, List[str]]):
+def build_hierarchy(classes: List[Class],
+                    layer_designs: Dict[str, List[Dict[str, str]]],
+                    package_design: Dict[str, List[str]]):
 
     unknown_layer = __build_unknown_layer(classes, package_design)
     layers = __seperate_layers(layer_designs, unknown_layer)

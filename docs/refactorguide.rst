@@ -44,10 +44,10 @@ refactorguide.formatters module
    :undoc-members:
    :show-inheritance:
 
-refactorguide.hierachy module
------------------------------
+refactorguide.hierarchy module
+------------------------------
 
-.. automodule:: refactorguide.hierachy
+.. automodule:: refactorguide.hierarchy
    :members:
    :undoc-members:
    :show-inheritance:

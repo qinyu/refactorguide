@@ -10,6 +10,8 @@ sorter = attrgetter('module', 'package', 'name')
 
 
 class Component(metaclass=ABCMeta):
+    """A componnet 
+    """
 
     @property
     @abstractmethod
