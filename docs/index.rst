@@ -5,13 +5,13 @@ Welcome to Refactor Guide's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   README
+   readme
    installation
    usage
    modules
-   CONTRIBUTING
-   AUTHORS
-   HISTORY
+   contributing
+   authors
+   history
 
 Indices and tables
 ==================
