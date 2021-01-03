@@ -1,8 +1,7 @@
-import fnmatch
 from refactorguide.desgin import LAYER_UNKNOWN
 from typing import Dict, List
 from refactorguide.models import Class, Component, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
-    group_class_by_module_package
+    group_class_by_module_package, to_wd_dict
 
 
 def __build_module(layer_name: str,
@@ -22,19 +21,11 @@ def __build_module(layer_name: str,
     return module
 
 
-def __seperate_items(component_list: ComponentList, match_wildcards):
-    match_items, unmatch_items = [], []
-    for item in component_list.items:
-        match_items.append(item) if not match_wildcards or fnmatch.fnmatch(
-            item.name, match_wildcards) else unmatch_items.append(item)
-    return match_items, unmatch_items
-
-
-def __seperate_layer(layer: Layer,
+def __seperate_layer(old_layer: Layer,
                      new_layer_name,
                      **wildcards_dict):
-    match_modules, unmatch_modules = __seperate_items(
-        layer, wildcards_dict.get('module', None))
+    match_modules, unmatch_modules = old_layer.separate_items(
+        wildcards_dict.get('module', None))
 
     final_match_modules, final_unmatch_modules = __recursive_seperate_items(
         wildcards_dict.get('package', None),
@@ -44,7 +35,7 @@ def __seperate_layer(layer: Layer,
         Module,
         new_layer_name)
 
-    return Layer(new_layer_name, final_match_modules), Layer(layer.name, final_unmatch_modules)
+    return Layer(new_layer_name, final_match_modules), Layer(old_layer.name, final_unmatch_modules)
 
 
 def __recursive_seperate_items(wildcards,
@@ -58,8 +49,8 @@ def __recursive_seperate_items(wildcards,
     if wildcards:
         final_match_items = []
         for match_item in match_items:
-            final_match_child_items, final_unmatch_child_items = __seperate_items(
-                match_item, wildcards)
+            final_match_child_items, final_unmatch_child_items = match_item.separate_items(
+                wildcards)
 
             final_match_child_items, final_unmatch_child_items = __recursive_seperate_items(
                 child_wildcards,
@@ -106,7 +97,7 @@ def __seperate_layers(layer_designs, unknown_layer):
     unmatch_layer = unknown_layer
     for layer_name, wildcards_dict_list in layer_designs.items():
         new_layer = Layer(layer_name, [])
-        for wildcards_dict in sorted(wildcards_dict_list, key=len, reverse=True):
+        for wildcards_dict in sorted([to_wd_dict(wd) for wd in wildcards_dict_list], key=len, reverse=True):
             if missing_wildcards(wildcards_dict):
                 continue
 
@@ -142,7 +133,7 @@ def missing_wildcards(wildcards_dict):
     return False
 
 
-def add_to(component: Component, container: ComponentList):
+def __add_to(component: Component, container: ComponentList):
     item_type_name = container.item_type.__name__.lower()
     item_key = component.hierarchy_path.get(item_type_name, None)
     if item_key:
@@ -151,43 +142,40 @@ def add_to(component: Component, container: ComponentList):
         else:
             container[item_key] = container.item_type(
                 item_key, list(), **component.hierarchy_path)
-            add_to(component, container[item_key])
+            __add_to(component, container[item_key])
 
     return container
 
 
-def remove_from(component: Component, container: ComponentList):
+def __remove_from(component: Component, container: ComponentList):
     item_type_name = container.item_type.__name__.lower()
     item_key = component.hierarchy_path.get(item_type_name, None)
     if item_key:
         if container.item_type == type(component):
-            print([item.name for item in container.items])
-            print("-del:" + item_key)
             del container[item_key]
-            print([item.name for item in container.items])
-
         else:
             item = container[item_key]
             if item:
-                remove_from(component, item)
+                __remove_from(component, item)
                 if not item.items:
-                    print("-del empty:" + item_key)
                     del container[item_key]
     return container
 
 
-def filter_hierarchy(container: ComponentList, path_pattern_dict: Dict[str, str], hierarchy: Hierarchy):
+def filter_hierarchy(container: ComponentList,
+                     path_patterns: Dict[str, str] or str,
+                     hierarchy: Hierarchy) -> Hierarchy:
+    path_wildcards = to_wd_dict(path_patterns)
     item_type_name = container.item_type.__name__.lower()
-    item_path_pattern = path_pattern_dict.get(item_type_name, None)
-    items = container.find_items(
-        item_path_pattern) if item_path_pattern else container.items
+    item_path_pattern = path_wildcards.get(item_type_name, None)
+    items = container.find_items(item_path_pattern)
 
     if issubclass(container.item_type, ComponentList):
         for item in items:
-            filter_hierarchy(item, path_pattern_dict, hierarchy)
+            filter_hierarchy(item, path_wildcards, hierarchy)
     else:
         for item in items:
-            add_to(item, hierarchy)
+            __add_to(item, hierarchy)
 
     return hierarchy
 
@@ -195,7 +183,6 @@ def filter_hierarchy(container: ComponentList, path_pattern_dict: Dict[str, str]
 def build_hierarchy(classes: List[Class],
                     layer_designs: Dict[str, List[Dict[str, str]]],
                     package_design: Dict[str, List[str]]):
-
     unknown_layer = __build_unknown_layer(classes, package_design)
     layers = __seperate_layers(layer_designs, unknown_layer)
     __fill_layer_name_and_usages(classes, layers)

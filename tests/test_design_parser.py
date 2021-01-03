@@ -1,4 +1,4 @@
-from refactorguide.design_parser import read_logic_pacakges, read_smells, read_layers
+from refactorguide.design_parser import __read_logic_pacakges, __read_smells, __read_layers
 import pytest
 from configparser import ConfigParser as CP
 
@@ -15,16 +15,12 @@ sample_design = '''
       {
         "from": {"module": "app", "package": "com.pretty.helper" },
        "to": {"module": "app", "package": "com.data.dao", "name": "NameParser"}
-      }
-    ]
-  SmellLayerDependency: [
-      {
-        "from": "platform",
-       "to": "app"
       },
       {
-        "from": "service",
-       "to": "app"
+        "from": "platform","to": "app"
+      },
+      {
+        "from": "service","to": "app"
       }
     ]
 
@@ -44,22 +40,25 @@ def config_parser() -> CP:
 
 def test_read_logic_packages(config_parser: CP):
     config_parser.read_string(sample_design)
-    logic_packages = read_logic_pacakges(config_parser)
+    logic_packages = __read_logic_pacakges(config_parser)
     assert logic_packages == {'app': ['com.pretty.helper', 'com.data.dao.converters'],
                               'Test': ['com.pretty.helper.test']}
 
 
 def test_read_smells(config_parser: CP):
     config_parser.read_string(sample_design)
-    smells = read_smells(config_parser)
+    smells = __read_smells(config_parser)
     assert [type(s).__name__ for s in smells] == [
-        'SmellDependencyCrossModule', 'SmellDependencyCrossPackage', 'SmellCylicDependency',
+        'SmellDependencyCrossModule',
+        'SmellDependencyCrossPackage',
+        'SmellCylicDependency',
         'SmellDependency',
-        'SmellLayerDependency', 'SmellLayerDependency']
+        'SmellDependency',
+        'SmellDependency']
 
 
 def test_read_layers(config_parser: CP):
     config_parser.read_string(sample_design)
-    layers = read_layers(config_parser)
+    layers = __read_layers(config_parser)
     assert layers == {'platform': [
         {'module': 'app', 'package': 'com.pretty.helper'}]}

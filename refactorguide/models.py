@@ -10,7 +10,7 @@ sorter = attrgetter('module', 'package', 'name')
 
 
 class Component(metaclass=ABCMeta):
-    """A componnet 
+    """A componnet
     """
 
     @property
@@ -76,17 +76,25 @@ class ComponentList(Component, metaclass=ABCMeta):
 
     def __delitem__(self, key):
         found = self.__getitem__(key)
-        print("__delitem__:"+key)
-        print("__delitem__:"+found.name)
         if found:
             self._items.remove(found)
 
     def find_items(self, wildcards):
-        return [p for p in self._items if fnmatch.fnmatch(p.name, wildcards)]
+        return self.separate_items(wildcards)[0]
+
+    def separate_items(self, wildcards):
+        if not wildcards:
+            return list(self.items), []
+
+        match_items, unmatch_items = [], []
+        for item in self.items:
+            match_items.append(item) if fnmatch.fnmatch(
+                item.name, wildcards) else unmatch_items.append(item)
+        return match_items, unmatch_items
 
     @property
     def classes(self):
-        return [c for p in self.items for c in p.classes]
+        return [c for item in self.items for c in item.classes]
 
 
 class ClassInfo(object):
@@ -122,8 +130,9 @@ class ClassInfo(object):
     def hierarchy_path(self):
         return {'layer': self.layer, 'module': self.module, 'package': self.package, 'class': self.name}
 
-    def wildcards_macth(self, **kwargs):
-        for attr_name, wildcards in kwargs.items():
+    def path_match(self, **kwargs):
+        path_pattern_dict = to_wd_dict(kwargs)
+        for attr_name, wildcards in path_pattern_dict.items():
             if not fnmatch.fnmatch(self.hierarchy_path.get(attr_name), wildcards):
                 return False
         return True
@@ -313,6 +322,15 @@ class Hierarchy(ComponentList):
     @property
     def hierarchy_path(self):
         return None
+
+
+def to_wd_dict(path_or_path_dict: Dict[str, str] or str) -> Dict[str, str]:
+    full_path = path_or_path_dict if type(
+        path_or_path_dict) is str else path_or_path_dict.get('path', None)
+    if full_path is not None:
+        path_or_path_dict = dict(
+            zip(['layer', 'module', 'package', 'class'], full_path.split(':')))
+    return path_or_path_dict
 
 
 def group_class_by_module_package(classes: List[Class]) -> Dict[str, Dict[str, Class]]:

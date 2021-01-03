@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 """Console script for refactorguide."""
 import argparse
-from refactorguide.hierarchy import build_hierarchy
+from refactorguide.models import Hierarchy
+from refactorguide.hierarchy import build_hierarchy, filter_hierarchy
 import refactorguide
 import sys
 
@@ -17,20 +19,20 @@ import refactorguide.output_uml as output_uml
 import refactorguide.desgin as design
 
 
-outputs = {
+output_formats = {
     "md": output_md.write_files,
     "uml": output_uml.write_files
 }
 
-parsers = {
+input_parsers = {
     "idea": input_idea.read_file,
 }
 
 
-def init_argparse() -> argparse.ArgumentParser:
+def __init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         usage="%(prog)s [OPTIONS] index design",
-        description="重构助手，根据你的设计找出代码的坏味道"
+        description="Refactor guide, find smells between your code and desired design"
     )
     parser.add_argument(
         "-v", "--version", action="version",
@@ -40,34 +42,50 @@ def init_argparse() -> argparse.ArgumentParser:
         "-o", "--outputs",
         nargs="*",
         default=["md"],
-        choices=outputs.keys(),
-        help="报告输出格式，可以同时输出多种格式，默认输出markdown"
+        choices=output_formats.keys(),
+        help="Specify format of report, you can specify more than one format."
     )
     parser.add_argument(
         "-p", "--parser",
         nargs=1,
         default="idea",
-        choices=parsers.keys(),
-        help="输入文件格式，默认是IDEA的依赖文件格式"
+        choices=input_parsers.keys(),
+        help="Parser used to parse the 'index' file. "
+        "Only IDEA dependency index file is supported."
     )
-    parser.add_argument('index', help="依赖关系文件，目前只支持IDEA中导出的依赖关系文件")
+
     parser.add_argument(
-        'design', help="设计文件，提供包设计、层设计和依赖坏味道。如指定文件不存在，会自动生成一个，在此基础上进行设计")
+        "-f", "--filters",
+        nargs="*",
+        default=[""],
+        help=r"Filter the result, use pattern linke \"{layer}:{package}:{module}:{class}\""
+    )
+    parser.add_argument(
+        'index', help="Path of dependencies index file of current code."
+        "Use 'Dependency analyse..' action in IDEA to export.")
+    parser.add_argument(
+        'design', help="Path of the desired design file."
+        "A sample will be created if file doesn't exist.")
     return parser
 
 
 def main() -> None:
-    args = init_argparse().parse_args()
+    args = __init_argparse().parse_args()
     load_design_file(args.design, generate_example=True)
 
-    hierarchy = build_hierarchy(parsers[args.parser](args.index),
-                                design.LAYERS, design.LOGIC_PACKAGES)
+    full_hierarchy = build_hierarchy(input_parsers[args.parser](args.index),
+                                     design.LAYERS, design.LOGIC_PACKAGES)
+
+    hierarchy = Hierarchy()
+    for f in args.filters:
+        hierarchy = filter_hierarchy(full_hierarchy, f, hierarchy)
 
     find_smells(hierarchy, design.SMELLS)
 
-    dt = time.strftime("%Y%m%d-%H-%M", time.localtime())
-    for o in args.outputs:
-        outputs[o](os.path.join("report-"+dt, o), hierarchy)
+    timestamp = time.strftime("%Y%m%d-%H-%M", time.localtime())
+    for format_key in args.outputs:
+        output_formats[format_key](os.path.join(
+            "report-"+timestamp, format_key), hierarchy)
 
 
 if __name__ == "__main__":
