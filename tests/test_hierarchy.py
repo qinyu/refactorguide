@@ -3,11 +3,11 @@ from refactorguide.desgin import LAYER_UNKNOWN
 from refactorguide.models import Class, Hierarchy
 from refactorguide.hierarchy import __add_to, build_hierarchy, filter_hierarchy, __remove_from
 
-classes = [Class(path="", full_name="a.package.Class1",
+classes = [Class(path="", name="Class1",
                  package="a.package", module="a"),
-           Class(path="", full_name="b.package.subpackage1.Class2",
+           Class(path="", name="Class2",
                  package="b.package.subpackage1", module="b"),
-           Class(path="", full_name="b.package.subpackage2.Class3",
+           Class(path="", name="Class3",
                  package="b.package.subpackage2", module="b")]
 
 
@@ -102,9 +102,9 @@ def test_build_hierarchy_with_specified_pacakge():
 
 
 def test_add_to_hierarchy():
-    cls = Class("class/path", "apackage.Class",
+    cls = Class("class/path", "Class",
                 "apackage", "amodule", "alayer")
-    other_cls = Class("other/class/path", "apackage.OtherClass",
+    other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
     hierarchy = __add_to(cls, Hierarchy())
@@ -115,9 +115,9 @@ def test_add_to_hierarchy():
 
 
 def test_remove_from_hierarchy():
-    cls = Class("class/path", "apackage.Class",
+    cls = Class("class/path", "Class",
                 "apackage", "amodule", "alayer")
-    other_cls = Class("other/class/path", "apackage.OtherClass",
+    other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
     hierarchy = __add_to(cls, Hierarchy())
@@ -141,9 +141,9 @@ def test_remove_from_hierarchy():
 
 
 def test_filter_hierarchy():
-    cls = Class("class/path", "apackage.Class",
+    cls = Class("class/path", "Class",
                 "apackage", "amodule", "alayer")
-    other_cls = Class("other/class/path", "apackage.OtherClass",
+    other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
     hierarchy = __add_to(cls, Hierarchy())

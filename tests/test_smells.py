@@ -20,15 +20,15 @@ layers = {
 }
 
 http_cls = Class(path='http/src/main/org/http/HttpClient.java',
-                 module='http', package='org.http', full_name='org.http.HttpClient')
+                 module='http', package='org.http', name='HttpClient')
 app_cls = Class(path='app/src/main/com/test/Main.java',
-                module='app', package='com.test', full_name='com.test.Main')
+                module='app', package='com.test', name='Main')
 log_cls = Class(path='log/src/main/org/log/LoggerHandler.java',
-                     module='log', package='org.log', full_name='org.log.LoggerHandler')
+                     module='log', package='org.log', name='LoggerHandler')
 page_cls = Class(path='ui/src/main/com/test/ui/ListPageM.java',
-                 module='ui', package='com.test.ui', full_name='com.test.ui.ListPage')
+                 module='ui', package='com.test.ui', name='ListPage')
 unknown_cls = Class(path='3rdparty/src/main/org/junit/Test.java',
-                    module='junit', package='org.junit', full_name='org.junit.Test')
+                    module='junit', package='org.junit', name='Test')
 
 
 @pytest.fixture()

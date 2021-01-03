@@ -90,13 +90,6 @@ def __write_layers(cp: CP, layers: Dict[str, List[Dict[str, str]]]):
         cp.set(LAYERS_SECTION, k, json.dumps(v, indent=2))
 
 
-def write_design_file(cp: CP, file_path: str, layers, smells):
-    __write_layers(cp, layers)
-    __write_smells(cp, smells)
-
-    __write_design(cp, file_path)
-
-
 def __write_design(cp, file_path):
     lines = ""
     with io.StringIO() as ss:

@@ -8,8 +8,8 @@ class Smell(object):
         self.check = check
         self.description = description
 
-    def __call__(self, hierarchy, cls, dep):
-        return self.check(hierarchy, cls, dep)
+    def __call__(self, hierachy, cls, dep):
+        return self.check(hierachy, cls, dep)
 
     def __str__(self):
         return self.description
@@ -25,7 +25,7 @@ class SmellDependency(Smell):
         self.from_dict = path_to_wd_dict(kwargs["from"])
         self.to_dict = path_to_wd_dict(kwargs["to"])
 
-        def check(hierarchy, cls: Class, dep: Class):
+        def check(hierachy, cls: Class, dep: Class):
             return cls.path_match(**self.from_dict) and dep.path_match(**self.to_dict)
 
         description = "{} shouldn't depends {} from".format(
@@ -42,15 +42,15 @@ class SmellDependency(Smell):
                 "to": wd_dict_to_path(self.to_dict)}
 
 
-def smell_cross_module(hierarchy,
-                       cls: Class, dep: Class) -> bool: return dep.is_production and cls.module != dep.module
+def cross_module(hierachy,
+                 cls: Class, dep: Class) -> bool: return dep.is_production and cls.module != dep.module
 
 
-def smell_cross_package(hierarchy,
-                        cls, dep): return dep.is_production and cls.module == dep.module and cls.package != dep.package
+def cross_package(hierachy,
+                  cls, dep): return dep.is_production and cls.module == dep.module and cls.package != dep.package
 
 
-def smell_cylic_dependency(hierarchy, cls, dep):
+def cylic_dependency(hierachy, cls, dep):
     if type(cls) == Class:
         return dep.is_production and dep.path in [u.path for u in cls.usages]
     elif type(dep) == Class:
@@ -59,17 +59,17 @@ def smell_cylic_dependency(hierarchy, cls, dep):
 
 class SmellDependencyCrossModule(Smell):
     def __init__(self) -> None:
-        super().__init__(smell_cross_module, "此依赖关系跨模块，需进一步分析")
+        super().__init__(cross_module, "此依赖关系跨模块，需进一步分析")
 
 
 class SmellDependencyCrossPackage(Smell):
     def __init__(self) -> None:
-        super().__init__(smell_cross_package, "此依赖关系跨包，需进一步分析")
+        super().__init__(cross_package, "此依赖关系跨包，需进一步分析")
 
 
 class SmellCylicDependency(Smell):
     def __init__(self) -> None:
-        super().__init__(smell_cylic_dependency, "此依赖是循环依赖，应当解除")
+        super().__init__(cylic_dependency, "此依赖是循环依赖，应当解除")
 
 
 def find_smells(hierarchy: Hierarchy, dependency_smells):

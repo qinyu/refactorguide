@@ -9,8 +9,6 @@ def __build_module(layer_name: str,
                    grouped_classes: Dict[str, List[Class]]):
     module = Module(module_name, list(), layer_name)
     for package_name, classes in grouped_classes.items():
-        # desired_package_name = next((p for p in desired_packages if package_name.startswith(p)),
-        #                             package_name)
         package = module[package_name]
         if package:
             package.classes = package.classes + classes  # sort

@@ -7,28 +7,28 @@ idea_category_dict = {
     "Production": re.compile(
         r"(?P<path>^[$]PROJECT_DIR[$][/]"
         r"(?P<module>.*)([/]src[/])(.*(kotlin|java))[/]"
-        r"(?P<full_name>(?P<package>.*)[/]"
-        r"(.*))[.].*$)"),
+        r"(?P<package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "Android": re.compile(
         r"(?P<path>.*[/]sdk[/].*[/]"
         r"(?P<module>android-[^\/]*)([/].*\.jar[!])*[/]"
-        r"(?P<full_name>(?P<package>.*)[/]"
-        r"(.*))[.].*$)"),
+        r"(?P<package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "ThirdParty": re.compile(
         r"(?P<path>.*[/].gradle[/]caches[/].*files-[^\/]*[/]"
         r"(?P<module>[^\/]*[/][^\/]*[/][^\/]*).*\.jar[!][/]"
-        r"(?P<full_name>(?P<package>.*)[/]"
-        r"(.*))[.].*$)"),
+        r"(?P<package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "LocalJar": re.compile(
         r"(?P<path>^[$]PROJECT_DIR[$][/]"
         r"(?P<module>.*)([/][^\/]*\.jar[!])[/]"
-        r"(?P<full_name>(?P<package>.*)[/]"
-        r"(.*))[.].*$)"),
+        r"(?P<package>.*)[/]"
+        r"(?P<name>.*)[.].*$)"),
     "JDK": re.compile(
         r"(?P<path>^[$]PROJECT_DIR[$][/]"
         r"(?P<module>.*)([/][^\/]*\.jar[!])[/]"
-        r"(?P<full_name>(?P<package>.*)[/]"
-        r"(.*))[.].*$)")
+        r"(?P<package>.*)[/]"
+        r"(?P<name>.*)[.].*$)")
 }
 
 

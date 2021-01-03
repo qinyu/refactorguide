@@ -10,8 +10,6 @@ sorter = attrgetter('module', 'package', 'name')
 
 
 class Component(metaclass=ABCMeta):
-    """A componnet
-    """
 
     @property
     @abstractmethod
@@ -98,17 +96,17 @@ class ComponentList(Component, metaclass=ABCMeta):
 
 
 class ClassInfo(object):
-    def __init__(self, path, full_name, package, module, layer, category):
+    def __init__(self, path, name, package, module, layer, category):
         self.layer = layer
         self.category = category
         self.path = path
-        self.full_name = full_name
+        self.name = name
         self.package = package
         self.module = module
 
     @property
-    def name(self):
-        return self.full_name[len(self.package)+1:]
+    def full_name(self):
+        return "{}.{}".format(self.package, self.name)
 
     @property
     def is_production(self):
@@ -122,7 +120,7 @@ class ClassInfo(object):
 
     @property
     def all_attributes(self):
-        all_attrs = dict(vars(self), name=self.name)
+        all_attrs = dict(vars(self), full_name=self.full_name)
         all_attrs['class'] = all_attrs['name']
         return all_attrs
 
@@ -154,10 +152,10 @@ class ClassInfo(object):
 
 class Class(ClassInfo, Component):
 
-    def __init__(self, path, full_name, package, module, layer=None, category="Production", dependencies=[]):
+    def __init__(self, path, name, package, module, layer=None, category="Production", dependencies=[]):
         self.dependencies = dependencies
         self.usages = []
-        super().__init__(path, full_name, package, module, layer, category)
+        super().__init__(path, name, package, module, layer, category)
 
     @property
     def dependencies(self):
@@ -177,8 +175,8 @@ class Class(ClassInfo, Component):
 
 
 class Dependency(ClassInfo):
-    def __init__(self, path, full_name, package, module, layer, category):
-        super().__init__(path, full_name, package, module, layer, category)
+    def __init__(self, path, name, package, module, layer, category):
+        super().__init__(path, name, package, module, layer, category)
         self.bad_smells = []
 
     def __eq__(self, other):
@@ -227,9 +225,6 @@ class Package(ComponentList):
     @classes.setter
     def classes(self, classes):
         self.items = sorted(classes, key=sorter)
-
-    def __getitem__(self, key: str) -> Class:
-        return next((c for c in self._items if c.full_name[len(self.package)+1:] == key), None)
 
     def oneline_str(self, template):
         return template.format(**self.all_attributes)
