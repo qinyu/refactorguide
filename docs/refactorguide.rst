@@ -28,14 +28,6 @@ refactorguide.design\_parser module
    :undoc-members:
    :show-inheritance:
 
-refactorguide.filters module
-----------------------------
-
-.. automodule:: refactorguide.filters
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 refactorguide.formatters module
 -------------------------------
 
