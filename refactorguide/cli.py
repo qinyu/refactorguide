@@ -6,7 +6,7 @@ from refactorguide.hierarchy import build_hierarchy, filter_hierarchy
 import refactorguide
 import sys
 
-from refactorguide.design_parser import load_design_file
+from refactorguide.design_parser import load_design
 import os
 import time
 
@@ -15,8 +15,6 @@ from refactorguide.smells import find_smells
 
 import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
-
-import refactorguide.desgin as design
 
 
 output_formats = {
@@ -71,16 +69,16 @@ def __init_argparse() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = __init_argparse().parse_args()
-    load_design_file(args.design, generate_example=True)
+    design = load_design(args.design, generate_example=True)
 
     full_hierarchy = build_hierarchy(input_parsers[args.parser](args.index),
-                                     design.LAYERS, design.LOGIC_PACKAGES)
+                                     design.layers)
 
     hierarchy = Hierarchy()
     for f in args.filters:
         hierarchy = filter_hierarchy(full_hierarchy, f, hierarchy)
 
-    find_smells(hierarchy, design.SMELLS)
+    find_smells(hierarchy, design.smells)
 
     timestamp = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for format_key in args.outputs:

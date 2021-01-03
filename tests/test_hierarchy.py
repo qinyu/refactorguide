@@ -12,18 +12,12 @@ classes = [Class(path="", full_name="a.package.Class1",
 
 
 def test_build_hierarchy_with_useless_wildcards():
-    hierarchy = build_hierarchy(classes,
-                                {},
-                                {})
+    hierarchy = build_hierarchy(classes, {})
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
-    hierarchy = build_hierarchy(classes,
-                                {'lib': []},
-                                {})
+    hierarchy = build_hierarchy(classes, {'lib': []})
     assert_all_in_unknown_layer_and_original_package(hierarchy)
-    hierarchy = build_hierarchy(classes,
-                                {'lib': [{}]},
-                                {})
+    hierarchy = build_hierarchy(classes, {'lib': [{}]})
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
     hierarchy = build_hierarchy(classes,
@@ -36,8 +30,7 @@ def test_build_hierarchy_with_useless_wildcards():
                                     {"module": "a", "package": "*not.exist"},
                                     {"module": "a", "package": "a.package",
                                         "class": "*NotExist"}
-                                ]},
-                                {})
+                                ]})
 
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
@@ -49,39 +42,34 @@ def test_build_hierarchy_with_useless_wildcards():
                                     {"path": ":*not.exist"},
                                     {"path": ":a:*not.exist"},
                                     {"path": ":a:a.package:*NotExist"}
-                                ]},
-                                {})
+                                ]})
 
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
 
 def test_build_hierarchy_with_wrong_wildcards(capsys):
     hierarchy = build_hierarchy(classes,
-                                {'lib': [{"no_module_key": "*not.exist"}]},
-                                {})
+                                {'lib': [{"no_module_key": "*not.exist"}]})
     out, _ = capsys.readouterr()
     assert out == "Warning: missing module {'no_module_key': '*not.exist'}\n"
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
     hierarchy = build_hierarchy(classes,
-                                {'lib': [{"no_module_key": "*not.exist"}]},
-                                {})
+                                {'lib': [{"no_module_key": "*not.exist"}]})
     out, _ = capsys.readouterr()
     assert out == "Warning: missing module {'no_module_key': '*not.exist'}\n"
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
     hierarchy = build_hierarchy(classes,
                                 {'lib': [{"module_must_be_specified": "a",
-                                          "package": "*not.exist"}]},
-                                {})
+                                          "package": "*not.exist"}]})
     out, _ = capsys.readouterr()
     assert out == "Warning: missing module {'module_must_be_specified': 'a', 'package': '*not.exist'}\n"
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
     hierarchy = build_hierarchy(classes,
                                 {'lib': [{"module": "a", "package_must_be_specified": "a.package",
-                                          "class": "*NotExist"}]},
-                                {})
+                                          "class": "*NotExist"}]})
     out, _ = capsys.readouterr()
     assert out == "Warning: missing package {'module': 'a', " + \
         "'package_must_be_specified': 'a.package', 'class': '*NotExist'}\n"
@@ -89,33 +77,28 @@ def test_build_hierarchy_with_wrong_wildcards(capsys):
 
     hierarchy = build_hierarchy(classes,
                                 {'lib': [{"module_must_be_specified": "a", "package": "a.package",
-                                          "class": "*NotExist"}]},
-                                {})
+                                          "class": "*NotExist"}]})
     out, _ = capsys.readouterr()
     assert out == "Warning: missing module {'module_must_be_specified': 'a', " +\
         "'package': 'a.package', 'class': '*NotExist'}\n"
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
-    hierarchy = build_hierarchy(classes,
-                                {'lib': [{}]},
-                                {})
+    hierarchy = build_hierarchy(classes, {'lib': [{}]},)
     out, _ = capsys.readouterr()
     assert out == 'Warning: missing module {}\n'
     assert_all_in_unknown_layer_and_original_package(hierarchy)
 
 
 def test_build_hierarchy_with_specified_pacakge():
-    hierarchy = build_hierarchy(classes,
-                                {},
-                                {'b': ['b.package']})
+    hierarchy = build_hierarchy(classes, {})
 
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package'].package == 'b.package'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage1.Class2'].name == 'Class2'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage1.Class2'].package == 'b.package.subpackage1'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage1.Class2'].full_name == 'b.package.subpackage1.Class2'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].name == 'Class3'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].package == 'b.package.subpackage2'
-    assert hierarchy[LAYER_UNKNOWN]['b']['b.package']['subpackage2.Class3'].full_name == 'b.package.subpackage2.Class3'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage1'].package == 'b.package.subpackage1'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage1']['Class2'].name == 'Class2'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage1']['Class2'].package == 'b.package.subpackage1'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage1']['Class2'].full_name == 'b.package.subpackage1.Class2'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage2']['Class3'].name == 'Class3'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage2']['Class3'].package == 'b.package.subpackage2'
+    assert hierarchy[LAYER_UNKNOWN]['b']['b.package.subpackage2']['Class3'].full_name == 'b.package.subpackage2.Class3'
 
 
 def test_add_to_hierarchy():

@@ -3,7 +3,6 @@ from refactorguide.smells import SmellDependency
 from refactorguide.hierarchy import build_hierarchy
 import pytest
 from refactorguide.models import Class
-import refactorguide.desgin as design
 
 platform = [
     {'module': 'http', 'package': '*'},
@@ -33,13 +32,12 @@ unknown_cls = Class(path='3rdparty/src/main/org/junit/Test.java',
 
 
 @pytest.fixture()
-def setup_layers():
-    design.set_layers(layers)
+def hierarchy():
     return build_hierarchy([http_cls, app_cls, log_cls,
-                            page_cls, unknown_cls], layers, {})
+                            page_cls, unknown_cls], layers)
 
 
-def test_is_in_layer(setup_layers):
+def test_is_in_layer(hierarchy):
 
     assert http_cls.is_layer('platform')
     assert log_cls.is_layer('platform')
@@ -53,23 +51,23 @@ def test_is_in_layer(setup_layers):
     assert not log_cls.is_layer('app')
 
 
-def test_smell_layer_dependency(setup_layers):
+def test_smell_layer_dependency(hierarchy):
     smell_platform_depend_app = SmellDependency(
         **{'from': 'platform', 'to': 'app'})
-    assert smell_platform_depend_app(setup_layers, http_cls, app_cls)
-    assert smell_platform_depend_app(setup_layers, log_cls, page_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, http_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, http_cls)
-    assert not smell_platform_depend_app(setup_layers, http_cls, log_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, page_cls)
+    assert smell_platform_depend_app(hierarchy, http_cls, app_cls)
+    assert smell_platform_depend_app(hierarchy, log_cls, page_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, http_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, http_cls)
+    assert not smell_platform_depend_app(hierarchy, http_cls, log_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, page_cls)
 
 
-def test_smell_dependency(setup_layers):
+def test_smell_dependency(hierarchy):
     smell_platform_depend_app = SmellDependency(
         **{'from': 'platform', 'to': 'app'})
-    assert smell_platform_depend_app(setup_layers, http_cls, app_cls)
-    assert smell_platform_depend_app(setup_layers, log_cls, page_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, http_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, http_cls)
-    assert not smell_platform_depend_app(setup_layers, http_cls, log_cls)
-    assert not smell_platform_depend_app(setup_layers, app_cls, page_cls)
+    assert smell_platform_depend_app(hierarchy, http_cls, app_cls)
+    assert smell_platform_depend_app(hierarchy, log_cls, page_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, http_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, http_cls)
+    assert not smell_platform_depend_app(hierarchy, http_cls, log_cls)
+    assert not smell_platform_depend_app(hierarchy, app_cls, page_cls)

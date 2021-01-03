@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from refactorguide.models import Class, Hierarchy, to_wd_dict
+from refactorguide.models import Class, Hierarchy, path_to_wd_dict, wd_dict_to_path
 
 
 class Smell(object):
@@ -8,8 +8,8 @@ class Smell(object):
         self.check = check
         self.description = description
 
-    def __call__(self, hierachy, cls, dep):
-        return self.check(hierachy, cls, dep)
+    def __call__(self, hierarchy, cls, dep):
+        return self.check(hierarchy, cls, dep)
 
     def __str__(self):
         return self.description
@@ -22,10 +22,10 @@ class Smell(object):
 class SmellDependency(Smell):
 
     def __init__(self, **kwargs):
-        self.from_dict = to_wd_dict(kwargs["from"])
-        self.to_dict = to_wd_dict(kwargs["to"])
+        self.from_dict = path_to_wd_dict(kwargs["from"])
+        self.to_dict = path_to_wd_dict(kwargs["to"])
 
-        def check(hierachy, cls: Class, dep: Class):
+        def check(hierarchy, cls: Class, dep: Class):
             return cls.path_match(**self.from_dict) and dep.path_match(**self.to_dict)
 
         description = "{} shouldn't depends {} from".format(
@@ -36,20 +36,21 @@ class SmellDependency(Smell):
         )
         super().__init__(check, description)
 
-    @ property
+    @property
     def all_args(self):
-        return {"from": self.from_dict, "to": self.to_dict}
+        return {"from": wd_dict_to_path(self.from_dict),
+                "to": wd_dict_to_path(self.to_dict)}
 
 
-def smell_cross_module(hierachy,
+def smell_cross_module(hierarchy,
                        cls: Class, dep: Class) -> bool: return dep.is_production and cls.module != dep.module
 
 
-def smell_cross_package(hierachy,
+def smell_cross_package(hierarchy,
                         cls, dep): return dep.is_production and cls.module == dep.module and cls.package != dep.package
 
 
-def smell_cylic_dependency(hierachy, cls, dep):
+def smell_cylic_dependency(hierarchy, cls, dep):
     if type(cls) == Class:
         return dep.is_production and dep.path in [u.path for u in cls.usages]
     elif type(dep) == Class:

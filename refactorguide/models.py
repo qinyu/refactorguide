@@ -131,7 +131,7 @@ class ClassInfo(object):
         return {'layer': self.layer, 'module': self.module, 'package': self.package, 'class': self.name}
 
     def path_match(self, **kwargs):
-        path_pattern_dict = to_wd_dict(kwargs)
+        path_pattern_dict = path_to_wd_dict(kwargs)
         for attr_name, wildcards in path_pattern_dict.items():
             if not fnmatch.fnmatch(self.hierarchy_path.get(attr_name), wildcards):
                 return False
@@ -324,13 +324,25 @@ class Hierarchy(ComponentList):
         return None
 
 
-def to_wd_dict(path_or_path_dict: Dict[str, str] or str) -> Dict[str, str]:
+def path_to_wd_dict(path_or_path_dict: Dict[str, str] or str) -> Dict[str, str]:
     full_path = path_or_path_dict if type(
         path_or_path_dict) is str else path_or_path_dict.get('path', None)
     if full_path is not None:
         path_or_path_dict = dict(
             zip(['layer', 'module', 'package', 'class'], full_path.split(':')))
     return path_or_path_dict
+
+
+def wd_dict_to_path(from_dict):
+    return "{}{}{}{}".format(
+        "" +
+        from_dict["layer"] if "layer" in from_dict.keys() else "",
+        ":" +
+        from_dict["module"] if "module" in from_dict.keys() else "",
+        ":" +
+        from_dict["package"] if "package" in from_dict.keys() else "",
+        ":" +
+        from_dict["class"] if "class" in from_dict.keys() else "")
 
 
 def group_class_by_module_package(classes: List[Class]) -> Dict[str, Dict[str, Class]]:

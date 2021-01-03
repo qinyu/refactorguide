@@ -1,23 +1,22 @@
 from refactorguide.desgin import LAYER_UNKNOWN
 from typing import Dict, List
 from refactorguide.models import Class, Component, ComponentList, Dependency, Hierarchy, Layer, Module, Package, \
-    group_class_by_module_package, to_wd_dict
+    group_class_by_module_package, path_to_wd_dict
 
 
 def __build_module(layer_name: str,
                    module_name: str,
-                   grouped_classes: Dict[str, List[Class]],
-                   desired_packages: List[str]):
+                   grouped_classes: Dict[str, List[Class]]):
     module = Module(module_name, list(), layer_name)
     for package_name, classes in grouped_classes.items():
-        desired_package_name = next((p for p in desired_packages if package_name.startswith(p)),
-                                    package_name)
-        package = module[desired_package_name]
+        # desired_package_name = next((p for p in desired_packages if package_name.startswith(p)),
+        #                             package_name)
+        package = module[package_name]
         if package:
             package.classes = package.classes + classes  # sort
         else:
-            module[desired_package_name] = Package(
-                desired_package_name, classes, module.name)
+            module[package_name] = Package(
+                package_name, classes, module.name)
     return module
 
 
@@ -97,7 +96,7 @@ def __seperate_layers(layer_designs, unknown_layer):
     unmatch_layer = unknown_layer
     for layer_name, wildcards_dict_list in layer_designs.items():
         new_layer = Layer(layer_name, [])
-        for wildcards_dict in sorted([to_wd_dict(wd) for wd in wildcards_dict_list], key=len, reverse=True):
+        for wildcards_dict in sorted([path_to_wd_dict(wd) for wd in wildcards_dict_list], key=len, reverse=True):
             if missing_wildcards(wildcards_dict):
                 continue
 
@@ -110,13 +109,12 @@ def __seperate_layers(layer_designs, unknown_layer):
     return layers
 
 
-def __build_unknown_layer(classes, package_design):
+def __build_unknown_layer(classes):
     module_dict = group_class_by_module_package(classes)
     unknown_layer = Layer(LAYER_UNKNOWN, [])
     unknown_layer.modules = [__build_module(unknown_layer.name,
                                             module_name,
-                                            package_dict,
-                                            package_design.get(module_name, []))
+                                            package_dict)
                              for module_name, package_dict in module_dict.items()]
     return unknown_layer
 
@@ -165,7 +163,7 @@ def __remove_from(component: Component, container: ComponentList):
 def filter_hierarchy(container: ComponentList,
                      path_patterns: Dict[str, str] or str,
                      hierarchy: Hierarchy) -> Hierarchy:
-    path_wildcards = to_wd_dict(path_patterns)
+    path_wildcards = path_to_wd_dict(path_patterns)
     item_type_name = container.item_type.__name__.lower()
     item_path_pattern = path_wildcards.get(item_type_name, None)
     items = container.find_items(item_path_pattern)
@@ -181,9 +179,8 @@ def filter_hierarchy(container: ComponentList,
 
 
 def build_hierarchy(classes: List[Class],
-                    layer_designs: Dict[str, List[Dict[str, str]]],
-                    package_design: Dict[str, List[str]]):
-    unknown_layer = __build_unknown_layer(classes, package_design)
+                    layer_designs: Dict[str, List[Dict[str, str]]]):
+    unknown_layer = __build_unknown_layer(classes)
     layers = __seperate_layers(layer_designs, unknown_layer)
     __fill_layer_name_and_usages(classes, layers)
 
