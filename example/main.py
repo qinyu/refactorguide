@@ -16,7 +16,7 @@ import refactorguide.desgin as design  # noqa: E402,E261
 def main() -> None:
     load_design_file("design.ini")
 
-    hierarchy = build_hierarchy(input_idea.read_file("index.xml"),
+    hierarchy = build_hierarchy(input_idea.read_file("./example/index.xml"),
                                 design.LAYERS, design.LOGIC_PACKAGES)
 
     find_smells(hierarchy, design.SMELLS)
