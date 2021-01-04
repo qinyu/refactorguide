@@ -1,6 +1,4 @@
 # coding=utf-8
-"""
-"""
 import os
 from refactorguide.tools import write_file
 from refactorguide.formatters import class_header, dependencies_tree, component_header

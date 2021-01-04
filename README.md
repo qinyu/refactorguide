@@ -1,6 +1,12 @@
 # Refactor Guide
 
- [![pypi](https://img.shields.io/pypi/v/refactorguide.svg)](https://pypi.python.org/pypi/refactorguide) [![docs](https://readthedocs.org/projects/refactorguide/badge/?version=latest)](https://refactorguide.readthedocs.io/en/latest/?badge=latest) [![build](https://github.com/qinyu/refactorguide/workflows/build/badge.svg)](https://github.com/qinyu/refactorguide/actions) [![coverage](https://img.shields.io/codecov/c/github/qinyu/refactorguide)](https://codecov.io/gh/qinyu/refactorguide) [![quality gate](https://sonarcloud.io/api/project_badges/measure?project=qinyu_refactorguide&metric=alert_status)](https://sonarcloud.io/dashboard?id=qinyu_refactorguide) [![pyup](https://pyup.io/repos/github/qinyu/refactorguide/shield.svg)](https://pyup.io/repos/github/qinyu/refactorguide/)
+ [![pypi](https://img.shields.io/pypi/v/refactorguide.svg)](https://pypi.python.org/pypi/refactorguide)
+ [![python](https://img.shields.io/pypi/pyversions/refactorguide.svg)](https://pypi.org/project/refactorguide/)
+ [![docs](https://readthedocs.org/projects/refactorguide/badge/?version=latest)](https://refactorguide.readthedocs.io/en/latest/?badge=latest)
+ [![build](https://github.com/qinyu/refactorguide/workflows/build/badge.svg)](https://github.com/qinyu/refactorguide/actions)
+ [![coverage](https://img.shields.io/codecov/c/github/qinyu/refactorguide)](https://codecov.io/gh/qinyu/refactorguide)
+ [![quality gate](https://sonarcloud.io/api/project_badges/measure?project=qinyu_refactorguide&metric=alert_status)](https://sonarcloud.io/dashboard?id=qinyu_refactorguide)
+ [![pyup](https://pyup.io/repos/github/qinyu/refactorguide/shield.svg)](https://pyup.io/repos/github/qinyu/refactorguide/)
 
 
 Commandline tools for refactor

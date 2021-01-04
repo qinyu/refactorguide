@@ -194,10 +194,9 @@ class Class(ClassInfo, Component):
 
 class ComponentList(Component, metaclass=ABCMeta):
 
-    @classmethod
     @property
     @abstractmethod
-    def item_type(cls):
+    def item_type(self):
         pass
 
     @property
@@ -260,9 +259,8 @@ class Package(ComponentList):
         super().__init__(name, parent=module)
         self.layer = layer
 
-    @classmethod
     @property
-    def item_type(cls):
+    def item_type(self):
         return Class
 
     @property
@@ -299,9 +297,8 @@ class Module(ComponentList):
         self.packages = packages
         super().__init__(name, parent=layer)
 
-    @classmethod
     @property
-    def item_type(cls):
+    def item_type(self):
         return Package
 
     @property
@@ -331,9 +328,8 @@ class Layer(ComponentList):
         self.modules = modules
         super().__init__(name)
 
-    @classmethod
     @property
-    def item_type(cls):
+    def item_type(self):
         return Module
 
     @property
@@ -359,9 +355,8 @@ class Hierarchy(ComponentList):
         super().__init__('Hierarchy')
         self.items = layers
 
-    @classmethod
     @property
-    def item_type(cls):
+    def item_type(self):
         return Layer
 
     @property
