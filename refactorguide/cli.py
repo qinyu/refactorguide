@@ -17,17 +17,17 @@ import refactorguide.output_md as output_md
 import refactorguide.output_uml as output_uml
 
 
-output_formats = {
+_output_formats = {
     "md": output_md.write_files,
     "uml": output_uml.write_files
 }
 
-input_parsers = {
+_input_parsers = {
     "idea": input_idea.read_file,
 }
 
 
-def __init_argparse() -> argparse.ArgumentParser:
+def _init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         usage="%(prog)s [OPTIONS] index design",
         description="Refactor guide, find smells between your code and desired design"
@@ -40,14 +40,14 @@ def __init_argparse() -> argparse.ArgumentParser:
         "-o", "--outputs",
         nargs="*",
         default=["md"],
-        choices=output_formats.keys(),
+        choices=_output_formats.keys(),
         help="Specify format of report, you can specify more than one format."
     )
     parser.add_argument(
         "-p", "--parser",
         nargs=1,
         default="idea",
-        choices=input_parsers.keys(),
+        choices=_input_parsers.keys(),
         help="Parser used to parse the 'index' file. "
         "Only IDEA dependency index file is supported."
     )
@@ -68,10 +68,10 @@ def __init_argparse() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    args = __init_argparse().parse_args()
+    args = _init_argparse().parse_args()
     design = load_design(args.design, generate_example=True)
 
-    full_hierarchy = build_hierarchy(input_parsers[args.parser](args.index),
+    full_hierarchy = build_hierarchy(_input_parsers[args.parser](args.index),
                                      design.layers)
 
     hierarchy = Hierarchy()
@@ -82,7 +82,7 @@ def main() -> None:
 
     timestamp = time.strftime("%Y%m%d-%H-%M", time.localtime())
     for format_key in args.outputs:
-        output_formats[format_key](os.path.join(
+        _output_formats[format_key](os.path.join(
             "report-"+timestamp, format_key), hierarchy)
 
 

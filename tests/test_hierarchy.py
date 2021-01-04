@@ -1,7 +1,7 @@
 
 from refactorguide.desgin import LAYER_UNKNOWN
 from refactorguide.models import Class, Hierarchy
-from refactorguide.hierarchy import __add_to, build_hierarchy, filter_hierarchy, __remove_from
+from refactorguide.hierarchy import _add_to, build_hierarchy, filter_hierarchy, _remove_from
 
 classes = [Class(path="", name="Class1",
                  package="a.package", module="a"),
@@ -107,8 +107,8 @@ def test_add_to_hierarchy():
     other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
-    hierarchy = __add_to(cls, Hierarchy())
-    hierarchy = __add_to(other_cls, hierarchy)
+    hierarchy = _add_to(cls, Hierarchy())
+    hierarchy = _add_to(other_cls, hierarchy)
 
     assert hierarchy['alayer']['amodule']['apackage']['Class'] == cls
     assert hierarchy['alayer']['amodule']['apackage']['OtherClass'] == other_cls
@@ -120,23 +120,23 @@ def test_remove_from_hierarchy():
     other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
-    hierarchy = __add_to(cls, Hierarchy())
-    hierarchy = __add_to(other_cls, hierarchy)
+    hierarchy = _add_to(cls, Hierarchy())
+    hierarchy = _add_to(other_cls, hierarchy)
 
-    __remove_from(other_cls, hierarchy)
+    _remove_from(other_cls, hierarchy)
     assert hierarchy['alayer']['amodule']['apackage']['Class'] == cls
     assert not hierarchy['alayer']['amodule']['apackage']['OtherClass']
 
-    hierarchy = __add_to(other_cls, hierarchy)
-    __remove_from(hierarchy['alayer']['amodule']['apackage'], hierarchy)
+    hierarchy = _add_to(other_cls, hierarchy)
+    _remove_from(hierarchy['alayer']['amodule']['apackage'], hierarchy)
     assert not hierarchy.layers
 
-    hierarchy = __add_to(cls, hierarchy)
-    __remove_from(hierarchy['alayer']['amodule'], hierarchy)
+    hierarchy = _add_to(cls, hierarchy)
+    _remove_from(hierarchy['alayer']['amodule'], hierarchy)
     assert not hierarchy.layers
 
-    hierarchy = __add_to(cls, hierarchy)
-    __remove_from(hierarchy['alayer'], hierarchy)
+    hierarchy = _add_to(cls, hierarchy)
+    _remove_from(hierarchy['alayer'], hierarchy)
     assert not hierarchy.layers
 
 
@@ -146,8 +146,8 @@ def test_filter_hierarchy():
     other_cls = Class("other/class/path", "OtherClass",
                       "apackage", "amodule", "alayer")
 
-    hierarchy = __add_to(cls, Hierarchy())
-    hierarchy = __add_to(other_cls, hierarchy)
+    hierarchy = _add_to(cls, Hierarchy())
+    hierarchy = _add_to(other_cls, hierarchy)
 
     assert_all_classes_in_hierarchy(filter_hierarchy(
         hierarchy, {}, Hierarchy()), cls, other_cls)

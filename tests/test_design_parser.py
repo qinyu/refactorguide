@@ -1,4 +1,4 @@
-from refactorguide.design_parser import __read_smells, __read_layers, load_design
+from refactorguide.design_parser import _read_smells, _read_layers, load_design
 import pytest
 from configparser import ConfigParser as CP
 import os
@@ -34,7 +34,7 @@ def config_parser() -> CP:
 
 def test_read_smells(config_parser: CP):
     config_parser.read_string(sample_design)
-    smells = __read_smells(config_parser)
+    smells = _read_smells(config_parser)
     assert [type(s).__name__ for s in smells] == [
         'SmellDependencyCrossModule',
         'SmellDependencyCrossPackage',
@@ -46,7 +46,7 @@ def test_read_smells(config_parser: CP):
 
 def test_read_layers(config_parser: CP):
     config_parser.read_string(sample_design)
-    layers = __read_layers(config_parser)
+    layers = _read_layers(config_parser)
     assert layers == {'platform': [
         {'module': 'app', 'package': 'com.pretty.helper'},
         {"path": ":app:com.pretty.util"}
