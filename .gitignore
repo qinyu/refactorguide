@@ -128,14 +128,16 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+.DS_Store
+
 .vscode/
+
+# Generated files
 Report_*/
 report-*/
 temp/
-
-.DS_Store
-
-settings.ini
-config.ini
-design.ini
+*.ini
+!tox.ini
+!tests/*.ini
+!example/*.ini
 

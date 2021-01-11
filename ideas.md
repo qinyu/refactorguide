@@ -37,8 +37,24 @@
     > 可以参考 AndroidStduio  Dependency Analysis 的 Illegal Rule规则
     > 可以参考 ArchUnit 测试用例描述
 
-4. 生成可视化结果  
-   1.1. Console 输出（已支持）  
-   1.2. CSV 导出（已支持，每个 module 一个文件，每个 CLS 一行）  
-   1.3. (TODO)PlantUML导出（TBD: 每个 module 一个 puml 文件，包含 package 和 class，依赖问题用文字描述，用颜色区分）  
+4. 生成可视化结果
+   1.1. Console 输出（已支持）
+   1.2. CSV 导出（已支持，每个 module 一个文件，每个 CLS 一行）
+   1.3. (TODO)PlantUML导出（TBD: 每个 module 一个 puml 文件，包含 package 和 class，依赖问题用文字描述，用颜色区分）
       > puml 可以作为新架构设计的输入进行修改
+
+
+  
+
+```mermaid
+graph TD
+    A[Start] --> B{Is it?};
+    B -- Yes --> C[OK];
+    C --> D[Rethink];
+    D --> B;
+    B -- No ----> E[End];
+```
+|   |   |
+|---|---|
+|   |   |
+
