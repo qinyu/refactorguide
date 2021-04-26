@@ -140,4 +140,4 @@ temp/
 !tox.ini
 !tests/*.ini
 !example/*.ini
-
+_drafts/
