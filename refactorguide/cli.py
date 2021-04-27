@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Console script for refactorguide."""
 import argparse
+import logging
 from refactorguide.models import Hierarchy
-from refactorguide.hierarchy import build_hierarchy, filter_hierarchy
+from refactorguide.hierarchy import _add_to, build_hierarchy, filter_hierarchy
 import refactorguide
 import sys
 
@@ -33,9 +34,12 @@ def _init_argparse() -> argparse.ArgumentParser:
         description="Refactor guide, find smells between your code and desired design"
     )
     parser.add_argument(
-        "-v", "--version", action="version",
+        "--version", action="version",
         version=refactorguide.__version__
     )
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+
     parser.add_argument(
         "-o", "--outputs",
         nargs="*",
@@ -69,6 +73,10 @@ def _init_argparse() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = _init_argparse().parse_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
     design = load_design(args.design, generate_example=True)
 
     full_hierarchy = build_hierarchy(_input_parsers[args.parser](args.index),
@@ -77,6 +85,11 @@ def main() -> None:
     hierarchy = Hierarchy()
     for f in args.filters:
         hierarchy = filter_hierarchy(full_hierarchy, f, hierarchy)
+
+        for cls in hierarchy.classes:
+            for d in cls.dependencies:
+                if d.is_production:
+                    _add_to(full_hierarchy[d.layer][d.module][d.package][d.name], hierarchy)
 
     find_smells(hierarchy, design.smells)
 

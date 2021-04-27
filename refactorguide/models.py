@@ -18,8 +18,7 @@ class ClassInfo(object):
                  name: str,
                  package: str,
                  module: str,
-                 layer: str,
-                 category: str):
+                 layer: str):
         """"Initialize class information.
 
         Args:
@@ -28,10 +27,8 @@ class ClassInfo(object):
             package: package of the class
             name: name of the class
             path: file path of the class file
-            category: jdk, sdk, 3rd-party or production code
         """
         self.layer = layer
-        self.category = category
         self.path = path
         self.name = name
         self.package = package
@@ -45,7 +42,7 @@ class ClassInfo(object):
     @property
     def is_production(self) -> bool:
         """True if the class is production code"""
-        return self.category == "Production"
+        return self.layer is not None and self.module is not None and self.package is not None
 
     def is_layer(self, layer) -> bool:
         """Check whether class belongs to specfic layer.
@@ -74,10 +71,12 @@ class ClassInfo(object):
                 'package': self.package,
                 'class': self.name}
 
-    def path_match(self, **kwargs) -> bool:
+    def path_match(self, ignore_none=False, **kwargs) -> bool:
         hierarchy_path = self.hierarchy_path
         path_pattern_dict = path_to_wd_dict(kwargs)
         for path_key, pattern in path_pattern_dict.items():
+            if not hierarchy_path.get(path_key) and ignore_none:
+                continue
             if not fnmatch.fnmatch(hierarchy_path.get(path_key), pattern):
                 return False
         return True
@@ -103,9 +102,8 @@ class Dependency(ClassInfo):
                  name: str,
                  package: str,
                  module: str,
-                 layer: str,
-                 category: str):
-        super().__init__(path, name, package, module, layer, category)
+                 layer: str):
+        super().__init__(path, name, package, module, layer)
         self.bad_smells = []
 
     def __eq__(self, other):
@@ -169,14 +167,13 @@ class Class(ClassInfo, Component):
                  package,
                  module,
                  layer=None,
-                 category="Production",
                  dependencies=[]):
         self.dependencies = dependencies
         self.usages = []
-        super().__init__(path, name, package, module, layer, category)
+        super().__init__(path, name, package, module, layer)
 
     @property
-    def dependencies(self):
+    def dependencies(self) -> List[Dependency]:
         return self._dependencies
 
     @dependencies.setter
@@ -250,6 +247,14 @@ class ComponentList(Component, metaclass=ABCMeta):
     @property
     def classes(self):
         return [cls for item in self.items for cls in item.classes]
+
+    @property
+    def smell_dependency_classes(self):
+        return [c for c in self.classes if len(c.smell_dependencies) > 0]
+
+    @property
+    def smell_uasge_classes(self):
+        return [c for c in self.classes if len(c.smell_usages) > 0]
 
 
 class Package(ComponentList):

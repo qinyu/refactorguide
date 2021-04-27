@@ -69,24 +69,34 @@ def _recursive_seperate_items(wildcards,
 
 
 def _fill_layer_name_and_usages(classes, layers):
+    _fill_classes_layer_name(layers)
+
     class_map = dict((c.path, c) for c in classes)
     for layer in layers:
         layer_name = layer.name
-        for module in layer.modules:
-            for package in module.packages:
-                package.layer = layer_name
-
         for cls in layer.classes:
             cls.layer = layer_name
             for d in cls.dependencies:
                 c = class_map.get(d.path)
                 if not c:
+                    # print("can't find dep:" + d.path)
                     continue
 
                 d.layer = c.layer
-                usage = Dependency(cls.path, cls.full_name,
-                                   cls.package, cls.module,  cls.layer, cls.category)
+                # if not d.layer:
+                #     print("can't find dep layer:" + d.path)
+                usage = Dependency(cls.path, cls.name, cls.package, cls.module, cls.layer)
                 c.usages = [*c.usages, usage]
+
+
+def _fill_classes_layer_name(layers):
+    for layer in layers:
+        layer_name = layer.name
+        for module in layer.modules:
+            for package in module.packages:
+                package.layer = layer_name
+                for cls in package.classes:
+                    cls.layer = layer_name
 
 
 def _seperate_layers(layer_designs, unknown_layer):

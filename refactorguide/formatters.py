@@ -1,11 +1,11 @@
 # coding=utf-8
 
 from typing import Dict, List
-from refactorguide.models import Class, Component
+from refactorguide.models import Class, ComponentList
 
 
 component_header_format = """
-# {}：{}
+
 ================================================================================
 一共有依赖 {} 项，坏味道依赖 {} 项
 一共有调用 {} 处，坏味道调用 {} 处
@@ -19,20 +19,27 @@ component_header_format = """
 """
 
 
-def component_header(pkg: Component, top=3, oneline_format="{full_name}") -> str:
+def oneline_class_format(cls, oneline_format):
+    if not cls.is_production:
+        return cls.full_name
+    else:
+        return cls.oneline_str(oneline_format)
+
+
+def component_header(pkg: ComponentList, top=3, oneline_format="{full_name}") -> str:
 
     def _percenet(sub, total):
         return '{:.2%}'.format(sub/total if total > 0 else 0)
 
     smell_dependencies_count = len(pkg.smell_dependencies)
     smell_usages_count = len(pkg.smell_usages)
-    smell_dependencies_classes = sorted(
-        pkg.classes, key=lambda c: len(c.smell_dependencies), reverse=True)
+    smell_dependencies_classes = sorted(pkg.smell_dependency_classes,
+                                        key=lambda c: len(c.smell_dependencies),
+                                        reverse=True)
     top_smell_dependencies_classes = smell_dependencies_classes[:top]
     top_smell_dependencies_count = len(
         set([d for c in top_smell_dependencies_classes for d in c.smell_dependencies]))
-    smell_usages_classes = sorted(
-        pkg.classes, key=lambda c: len(c.smell_usages), reverse=True)
+    smell_usages_classes = sorted(pkg.smell_uasge_classes, key=lambda c: len(c.smell_usages), reverse=True)
     top_smell_usages_classes = smell_usages_classes[:top]
     top_smell_usages_count = len(
         set([d for c in top_smell_usages_classes for d in c.smell_usages]))
@@ -47,14 +54,14 @@ def component_header(pkg: Component, top=3, oneline_format="{full_name}") -> str
         top_smell_dependencies_count,
         _percenet(top_smell_dependencies_count, smell_dependencies_count),
         "\n".join(
-            ["{}（{}）  ".format(c.oneline_str(oneline_format),
+            ["{}（{}）  ".format(oneline_class_format(c, oneline_format),
                                _percenet(len(set(c.smell_dependencies)),
                                          smell_dependencies_count)) for c in top_smell_dependencies_classes]),
         top,
         top_smell_usages_count,
         _percenet(top_smell_usages_count, smell_usages_count),
         "\n".join(
-            ["{}（{}）  ".format(c.oneline_str(oneline_format),
+            ["{}（{}）  ".format(oneline_class_format(c, oneline_format),
                                _percenet(len(set(c.smell_usages)),
                                          smell_usages_count)) for c in top_smell_usages_classes]),
     )
@@ -82,7 +89,7 @@ def class_header(cls: Class) -> str:
 
 
 def deps_format(dependencies: List[Class], oneline_format: str, join_str: str, end_str: str) -> str:
-    d_onelines = [d.oneline_str(oneline_format) for d in dependencies]
+    d_onelines = [oneline_class_format(d, oneline_format) for d in dependencies]
     return (join_str if len(d_onelines) > 1 else "") + join_str.join(d_onelines[:-1]) + end_str + d_onelines[-1] + "  "
 
 
