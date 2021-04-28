@@ -198,11 +198,11 @@ class ComponentList(Component, metaclass=ABCMeta):
 
     @property
     def dependencies(self):
-        return sorted(set([d for c in self.classes for d in c.dependencies]), key=_sorter)
+        return sorted([d for c in self.classes for d in c.dependencies], key=_sorter)
 
     @property
     def usages(self):
-        return sorted(set([u for c in self.classes for u in c.usages]), key=_sorter)
+        return sorted([u for c in self.classes for u in c.usages], key=_sorter)
 
     def __init__(self, name, parent=None) -> None:
         super().__init__()
