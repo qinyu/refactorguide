@@ -56,7 +56,7 @@ class ClassInfo(object):
         return self.layer == layer
 
     def oneline_str(self, template) -> str:
-        return template.format(**self.__all_attributes)
+        return template.format(**self.__all_attributes) if self.is_production else self.full_name
 
     @property
     def __all_attributes(self) -> Dict[str, str]:
@@ -346,6 +346,10 @@ class Layer(ComponentList):
         self.items = modules
 
     @property
+    def packages(self) -> List[Package]:
+        return [p for m in self.modules for p in m.pacakges]
+
+    @property
     def layer(self):
         return self.name
 
@@ -371,6 +375,14 @@ class Hierarchy(ComponentList):
     @layers.setter
     def layers(self, layers: List[Layer]):
         self.items = layers
+
+    @property
+    def modules(self):
+        return [module for layer in self.layers for module in layer.modules]
+
+    @property
+    def packages(self) -> List[Package]:
+        return [packge for module in self.modules for packge in module.pacakges]
 
     @property
     def hierarchy_path(self):
