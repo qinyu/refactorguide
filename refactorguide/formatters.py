@@ -16,11 +16,11 @@ def dependencies_tree(module_dict: Dict[str, Dict[str, List[Class]]], oneline_fo
         _str += m + "  "
         keys = list(pkgs.keys())
         for p in keys[:-1]:
-            _str += "\n├── " + p + "  "
+            _str += "\n+--&nbsp;" + p + "  "
             _str += _deps_format(pkgs[p], oneline_format,
-                                 join_str="\n│   ├── ", end_str="\n│   └── ")
-        _str += "\n└── " + keys[-1] + "  "
+                                 join_str="\n│&nbsp;&nbsp;&nbsp;+--&nbsp;", end_str="\n│&nbsp;&nbsp;&nbsp;\\\\--&nbsp;")
+        _str += "\n\\\\--&nbsp;" + keys[-1] + "  "
         _str += _deps_format(pkgs[keys[-1]], oneline_format,
-                             join_str="\n    ├──", end_str="\n    └── ")
+                             join_str="\n&nbsp;&nbsp;&nbsp;&nbsp;+--", end_str="\n&nbsp;&nbsp;&nbsp;&nbsp;\\\\--&nbsp;")
         _str += "\n"
     return _str
