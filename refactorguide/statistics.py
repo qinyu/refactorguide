@@ -1,5 +1,7 @@
 import itertools
 import operator
+
+import pandas as pd
 from refactorguide.smells import Smell
 from typing import Dict, List, Tuple
 from refactorguide.models import Class, Component, ComponentList, Dependency
@@ -64,3 +66,37 @@ def dependencies_statistics(dependency_group: Dict[Dependency, List[Tuple[Smell,
         ]
     statistics_data = [_dependency_data(d, sdc_list) for d, sdc_list in dependency_group.items()]
     return sorted(statistics_data, key=operator.itemgetter(1), reverse=True)
+
+
+def smell_data_frame(classes: List[Class]):
+    sdc_list = [
+        (s,
+         str(s),
+         d.layer,
+         ":".join([d.layer, d.module]),
+         ":".join([d.layer, d.module, d.package]),
+         d.full_name,
+         d.path,
+         d,
+         c.layer,
+         ":".join([c.layer, c.module]),
+         ":".join([c.layer, c.module, c.package]),
+         c.full_name,
+         c.path,
+         c)
+        for c in classes for d in c.dependencies for s in d.bad_smells
+    ]
+    return pd.DataFrame.from_records(sdc_list, columns=["Smell",
+                                                        "Smell.Str",
+                                                        "Dep.Layer",
+                                                        "Dep.Module",
+                                                        "Dep.Package",
+                                                        "Dep.Name",
+                                                        "Dep.Path",
+                                                        "Dep",
+                                                        "Cls.Layer",
+                                                        "Cls.Module",
+                                                        "Cls.Package",
+                                                        "Cls.Name",
+                                                        "Cls.Path",
+                                                        "Cls"])
