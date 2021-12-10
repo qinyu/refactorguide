@@ -15,4 +15,4 @@ pandas==1.2.4
 openpyxl==3.0.7
 
 pytest==6.2.1
-pytest-runner==5.2
+pytest-runner==5.3.1
